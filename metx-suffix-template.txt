@@ -1,0 +1,12 @@
+          ],
+          "drawing": null
+        }
+      ],
+      "notes": [],
+      "plots": [],
+      "location_tables": [],
+      "tephigrams": [],
+      "weather_tables": []
+    }
+  ]
+} 
