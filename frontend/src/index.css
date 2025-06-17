@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* MetX Brand Colors */
+    --primary-dark: #0d1f2d;
+    --accent-gold: #c5a95a;
+    --soft-beige: #e8d7bd;
+    --muted-purple: #e7a4e7;
+    --light-neutral: #f0ede4;
+    
+    /* shadcn/ui variables */
+    --background: 240 10% 96%;
+    --foreground: 13 25% 18%; /* Using primary-dark in HSL */
+    --card: 0 0% 100%;
+    --card-foreground: 13 25% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 13 25% 18%;
+    --primary: 13 25% 18%; /* primary-dark */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 49 34% 91%; /* soft-beige */
+    --secondary-foreground: 13 25% 18%;
+    --muted: 49 34% 91%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 41 29% 56%; /* accent-gold */
+    --accent-foreground: 13 25% 18%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 41 29% 56%; /* accent-gold for focus rings */
+    --radius: 0.5rem;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+    line-height: 1.6;
+    color: var(--primary-dark);
+    background-color: var(--light-neutral);
+    margin: 0;
+    padding: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    color: var(--primary-dark);
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background-color: var(--accent-gold);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    outline: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+  
+  .btn-primary:focus {
+    box-shadow: 0 0 0 2px var(--accent-gold), 0 0 0 4px rgba(197, 169, 90, 0.2);
+  }
+
+  .btn-secondary {
+    background-color: var(--soft-beige);
+    color: var(--primary-dark);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    outline: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-secondary:hover {
+    opacity: 0.8;
+  }
+  
+  .btn-secondary:focus {
+    box-shadow: 0 0 0 2px var(--accent-gold), 0 0 0 4px rgba(197, 169, 90, 0.2);
+  }
+
+  .card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  
+  .input-field:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--accent-gold);
+  }
+  
+  .input-field-error {
+    border-color: #fca5a5;
+  }
+  
+  .input-field-error:focus {
+    box-shadow: 0 0 0 2px #ef4444;
+  }
+}

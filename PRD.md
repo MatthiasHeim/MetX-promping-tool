@@ -42,13 +42,17 @@ Customers struggle with the initial MetX setup—parameter search and layer‑st
    * Manual rating (1‑5) + comment.
    * Optional dashboard image upload.
    * Automated LLM evaluation comparing input ↔ output.
-6. **Welcome screen & tooltips** for guidance.
-7. **Backend**: Supabase (PostgreSQL + Storage) for text & image blobs.
+6. **User authentication & tracking**
+   * Login/signup system with email/password.
+   * User session management.
+   * Audit trail for prompt modifications and evaluations.
+   * User attribution for all actions.
+7. **Welcome screen & tooltips** for guidance.
+8. **Backend**: Supabase (PostgreSQL + Storage + Auth) for text & image blobs.
 
 ### Out of Scope (MVP)
 
 * Non‑OpenAI models (future).
-* Authentication / RBAC (open access for internal network).
 * Direct push of JSON into MetX (manual upload for now).
 
 ## 6. Functional Requirements
@@ -65,13 +69,16 @@ Customers struggle with the initial MetX setup—parameter search and layer‑st
 | F‑08 | Prompt editor supports full version history and revert.                            |
 | F‑09 | Tooltips explain every input, button, and metric.                                  |
 | F‑10 | Welcome screen explains purpose, workflow, and links to documentation.             |
+| F‑11 | User authentication with email/password login and session management.              |
+| F‑12 | System tracks user identity for all prompt modifications and evaluations.          |
+| F‑13 | Audit trail shows who made changes and when for accountability.                    |
 
 ## 7. Non‑Functional Requirements
 
 * **Performance**: ≤ 60 s P95 generation latency for GPT‑4o on typical requests.
 * **Cost guardrail**: Abort generation if projected cost > configured max_thr (default 0.20 CHF).
 * **Reliability**: 99 % uptime during CET business hours.
-* **Security**: RLS in Supabase; all files private by default. No PII processed.
+* **Security**: RLS in Supabase; all files private by default. User authentication required. Secure session management.
 
 ## 8. Data Model (Supabase)
 
@@ -82,22 +89,26 @@ Customers struggle with the initial MetX setup—parameter search and layer‑st
   * `name, description`
   * `template_text`
   * `json_prefix`, `json_suffix`, `use_placeholder (bool)`
-  * `version, created_at, updated_at`
+  * `version, created_by (references auth.users), created_at, updated_at`
 
 * **models** (config)
   * `id, name, provider, price_per_1k_tokens`
 
 * **user_inputs**
-  * `id, text, input_image_url, created_at`
+  * `id, user_id (references auth.users), text, input_image_url, created_at`
 
 * **generation_results**
-  * `id, user_input_id, prompt_id, model_id`
+  * `id, user_input_id, prompt_id, model_id, user_id (references auth.users)`
   * `raw_json, final_json`
   * `cost_chf, latency_ms`
   * `output_image_url`
   * `manual_score, manual_comment`
   * `auto_score, auto_rationale`
   * `created_at`
+
+* **audit_logs**
+  * `id, user_id (references auth.users), action, entity_type, entity_id`
+  * `old_values, new_values, created_at`
 
 ### Storage Buckets
 
@@ -106,13 +117,14 @@ Customers struggle with the initial MetX setup—parameter search and layer‑st
 
 ## 9. UX Flow Summary
 
-1. **Welcome → Start Testing**
+1. **Login/Signup Screen → Welcome → Start Testing**
 2. **Input Screen**
    * Enter text ↔ upload image ↔ pick prompt ↔ pick model(s) ↔ Run.
 3. **Loading**: Progress cards per model.
 4. **Results View** (cards)
    * JSON, metrics, download, rating form, image upload.
-5. **Prompt Library**: List → Edit → Save new version.
+5. **Prompt Library**: List → Edit → Save new version (with user tracking).
+6. **User Profile**: Logout, view activity history.
 
 ## 10. Milestones & Timeline (est.)
 
@@ -135,11 +147,28 @@ Customers struggle with the initial MetX setup—parameter search and layer‑st
 | Prompt edits break output | Versioning & rollback; keep working default prompt.                         |
 | Supabase storage limits   | Periodic cleanup job for old images.                                        |
 
-## 12. Open Questions
+## 12. Technical Specifications
 
-1. What scale of concurrent users should we design for? (impacts Supabase tier) -> max 3
-2. Exact automated‑evaluation rubric—numeric vs. categorical? -> numeric
-3. Will future non‑OpenAI models require a provider abstraction layer now? -> not now
+Based on requirements clarification:
+
+* **LLM Models**: GPT-4.1, o3, GPT-4o (OpenAI)
+* **Frontend**: React + TypeScript + shadcn/ui components
+* **Testing**: Vitest framework
+* **Deployment**: Vercel hosting
+* **Authentication**: Supabase Auth with email/password
+* **Concurrent Users**: Max 3 users (impacts Supabase tier selection)
+* **Automated Evaluation**: Numeric scoring for weather parameter completeness
+  * Compare input image (if provided) vs output image (user uploaded)
+  * Validate generated JSON contains weather parameters described in user prompt
+  * Score completeness and accuracy of weather data representation
+
+### Color Palette
+
+* **Primary Dark Color**: `#0d1f2d` - for backgrounds, headers, and strong contrast elements
+* **Accent Gold**: `#c5a95a` - for highlights, buttons, or decorative elements
+* **Soft Beige**: `#e8d7bd` - for backgrounds, cards, or light UI elements
+* **Muted Purple**: `#e7a4e7` - for secondary buttons, links, or accent highlights
+* **Lightest Neutral**: `#f0ede4` - for background sections, dividers, or text contrast
 
 ---
 
