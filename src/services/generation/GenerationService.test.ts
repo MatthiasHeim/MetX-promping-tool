@@ -98,22 +98,51 @@ describe('GenerationService', () => {
       
       expect(estimatedTokens).toBe(expectedTokens)
     })
+
+    it('should estimate tokens for complete generation including prompt template', () => {
+      const userInput = 'temperature data for Switzerland'
+      const promptTemplate = 'Generate a MetX dashboard based on: {{output}}. Include all necessary parameters.'
+      const hasImage = false
+      
+      const estimatedTokens = GenerationService.estimateTokensForGeneration(userInput, promptTemplate, hasImage)
+      
+      // Should process template with user input and estimate tokens for the full prompt
+      const fullPrompt = 'Generate a MetX dashboard based on: temperature data for Switzerland. Include all necessary parameters.'
+      const expectedTokens = Math.ceil(fullPrompt.split(' ').length * 1.3)
+      
+      expect(estimatedTokens).toBe(expectedTokens)
+    })
+
+    it('should estimate tokens for generation with image', () => {
+      const userInput = 'weather map analysis'
+      const promptTemplate = 'Analyze this image: {{output}}'
+      const hasImage = true
+      
+      const estimatedTokens = GenerationService.estimateTokensForGeneration(userInput, promptTemplate, hasImage)
+      
+      const fullPrompt = 'Analyze this image: weather map analysis'
+      const textTokens = Math.ceil(fullPrompt.split(' ').length * 1.3)
+      const expectedTokens = textTokens + 765 // Include image tokens
+      
+      expect(estimatedTokens).toBe(expectedTokens)
+    })
   })
 
   describe('Cost Guardrails', () => {
     it('should reject generation if total cost exceeds threshold', () => {
       const models: Model[] = [
         { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06 },
+        { id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai', price_per_1k_tokens: 0.0004 },
         { id: 'o3', name: 'o3', provider: 'openai', price_per_1k_tokens: 0.15 }
       ]
 
-      const estimatedTokens = 5000 // This would cost: 0.30 + 0.75 = 1.05 CHF
+      const estimatedTokens = 5000 // This would cost: 0.30 + 0.002 + 0.75 = 1.052 CHF
       const maxCostChf = 0.20
 
       const result = GenerationService.checkCostGuardrails(models, estimatedTokens, maxCostChf)
       
       expect(result.canProceed).toBe(false)
-      expect(result.totalCost).toBe(1.05)
+      expect(result.totalCost).toBe(1.052)
       expect(result.warning).toContain('exceeds maximum cost')
     })
 
@@ -130,6 +159,43 @@ describe('GenerationService', () => {
       expect(result.canProceed).toBe(true)
       expect(result.totalCost).toBe(0.01)
       expect(result.warning).toBeUndefined()
+    })
+
+    it('should check cost guardrails for complete generation including prompt template', () => {
+      const models: Model[] = [
+        { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06 }
+      ]
+      const userInput = 'temperature and precipitation data for Switzerland'
+      const promptTemplate = 'Generate a comprehensive MetX dashboard based on: {{output}}. Include all necessary weather parameters, layers, and visualization settings for the requested region.'
+      const hasImage = false
+      const maxCostChf = 0.05
+
+      const result = GenerationService.checkCostGuardrailsForGeneration(
+        models, userInput, promptTemplate, hasImage, maxCostChf
+      )
+      
+      // The full prompt should be much longer than just the user input
+      // So cost should be higher and potentially exceed threshold
+      expect(result.totalCost).toBeGreaterThan(0)
+      expect(typeof result.canProceed).toBe('boolean')
+    })
+
+    it('should check cost guardrails with image for complete generation', () => {
+      const models: Model[] = [
+        { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', price_per_1k_tokens: 0.005 }
+      ]
+      const userInput = 'weather map'
+      const promptTemplate = 'Analyze this image: {{output}}'
+      const hasImage = true
+      const maxCostChf = 0.20
+
+      const result = GenerationService.checkCostGuardrailsForGeneration(
+        models, userInput, promptTemplate, hasImage, maxCostChf
+      )
+      
+      // Should include image tokens (765) plus text tokens
+      expect(result.totalCost).toBeGreaterThan(0.003) // At least 765 tokens * 0.005 = 0.003825 CHF
+      expect(result.canProceed).toBe(true) // Should be within 0.20 CHF threshold
     })
   })
 

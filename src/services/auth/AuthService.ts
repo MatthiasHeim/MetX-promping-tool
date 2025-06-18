@@ -1,5 +1,7 @@
 // AuthService - Authentication service for MetX prompting tool
 
+import { supabase } from '../../lib/supabase'
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -48,33 +50,56 @@ export class AuthService {
   }
 
   static async signIn(email: string, password: string): Promise<AuthResult> {
-    // TODO: Implement actual Supabase authentication
-    // This is a placeholder implementation
     try {
-      if (email === 'demo@meteomatics.com' && password === 'demo123') {
-        return {
-          user: { id: '1', email, created_at: new Date().toISOString() },
-          error: null
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (error) {
+        // Handle common Supabase auth errors
+        let errorMessage = 'An error occurred during sign in'
+        if (error.message.includes('Invalid login credentials') || 
+            error.message.includes('Email not confirmed') ||
+            error.message.includes('Invalid email or password')) {
+          errorMessage = 'Invalid email or password'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please check your email and confirm your account'
         }
-      } else {
+
+        return {
+          user: null,
+          error: { message: errorMessage }
+        }
+      }
+
+      if (!data.user) {
         return {
           user: null,
           error: { message: 'Invalid email or password' }
         }
       }
+
+      return {
+        user: {
+          id: data.user.id,
+          email: data.user.email!,
+          created_at: data.user.created_at
+        },
+        error: null
+      }
     } catch (error) {
+      console.error('Sign in error:', error)
       return {
         user: null,
-        error: { message: 'An unexpected error occurred' }
+        error: { message: 'Network error occurred. Please try again.' }
       }
     }
   }
 
   static async signUp(email: string, password: string): Promise<AuthResult> {
-    // TODO: Implement actual Supabase authentication
-    // This is a placeholder implementation
     try {
-      // Simulate validation
+      // Validate input before making API call
       const emailValidation = this.validateEmail(email)
       const passwordValidation = this.validatePassword(password)
 
@@ -92,42 +117,98 @@ export class AuthService {
         }
       }
 
-      // Simulate email already exists check
-      if (email === 'existing@meteomatics.com') {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password
+      })
+
+      if (error) {
+        // Handle common Supabase auth errors
+        let errorMessage = error.message
+        if (error.message.includes('already registered')) {
+          errorMessage = 'Email already registered'
+        } else if (error.message.includes('Password should be')) {
+          errorMessage = 'Password does not meet requirements'
+        }
+
         return {
           user: null,
-          error: { message: 'Email already registered' }
+          error: { message: errorMessage }
         }
       }
 
-      // Simulate successful signup
+      if (!data.user) {
+        return {
+          user: null,
+          error: { message: 'Failed to create account' }
+        }
+      }
+
       return {
-        user: { 
-          id: Math.random().toString(36).substr(2, 9), 
-          email, 
-          created_at: new Date().toISOString() 
+        user: {
+          id: data.user.id,
+          email: data.user.email!,
+          created_at: data.user.created_at
         },
         error: null
       }
     } catch (error) {
+      console.error('Sign up error:', error)
       return {
         user: null,
-        error: { message: 'An unexpected error occurred' }
+        error: { message: 'Network error occurred. Please try again.' }
       }
     }
   }
 
   static async signOut(): Promise<{ error: { message: string } | null }> {
-    // TODO: Implement actual Supabase sign out
     try {
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        return { error: { message: error.message } }
+      }
+      
       return { error: null }
     } catch (error) {
+      console.error('Sign out error:', error)
       return { error: { message: 'Failed to sign out' } }
     }
   }
 
   static async getCurrentUser(): Promise<AuthUser | null> {
-    // TODO: Implement actual Supabase current user check
-    return null
+    try {
+      const { data, error } = await supabase.auth.getUser()
+      
+      if (error || !data.user) {
+        return null
+      }
+
+      return {
+        id: data.user.id,
+        email: data.user.email!,
+        created_at: data.user.created_at
+      }
+    } catch (error) {
+      console.error('Get current user error:', error)
+      return null
+    }
+  }
+
+  /**
+   * Subscribe to authentication state changes
+   */
+  static onAuthStateChange(callback: (user: AuthUser | null) => void) {
+    return supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        callback({
+          id: session.user.id,
+          email: session.user.email!,
+          created_at: session.user.created_at
+        })
+      } else {
+        callback(null)
+      }
+    })
   }
 } 

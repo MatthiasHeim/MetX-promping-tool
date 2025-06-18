@@ -28,10 +28,20 @@ export function GenerationForm({ models, prompts, onGenerate }: GenerationFormPr
   const [formState, setFormState] = useState<FormState>({
     text: '',
     selectedModelIds: [],
-    selectedPromptId: prompts[0]?.id || '',
+    selectedPromptId: '',
     inputImage: null,
     errors: {}
   })
+
+  // Update selectedPromptId when prompts are loaded
+  useEffect(() => {
+    if (prompts.length > 0 && !formState.selectedPromptId) {
+      setFormState(prev => ({
+        ...prev,
+        selectedPromptId: prompts[0].id
+      }))
+    }
+  }, [prompts, formState.selectedPromptId])
   
   const [isGenerating, setIsGenerating] = useState(false)
   const [costEstimation, setCostEstimation] = useState<{
@@ -44,15 +54,27 @@ export function GenerationForm({ models, prompts, onGenerate }: GenerationFormPr
 
   // Update cost estimation when form changes
   useEffect(() => {
-    if (formState.text && formState.selectedModelIds.length > 0) {
+    if (formState.text && formState.selectedModelIds.length > 0 && formState.selectedPromptId) {
       const selectedModels = models.filter(m => formState.selectedModelIds.includes(m.id))
-      const estimatedTokens = GenerationService.estimateTokens(formState.text, !!formState.inputImage)
-      const result = GenerationService.checkCostGuardrails(selectedModels, estimatedTokens, 0.20)
-      setCostEstimation(result)
+      const selectedPrompt = prompts.find(p => p.id === formState.selectedPromptId)
+      
+      if (selectedPrompt) {
+        // Use the new method that includes the full prompt template in token estimation
+        const result = GenerationService.checkCostGuardrailsForGeneration(
+          selectedModels,
+          formState.text,
+          selectedPrompt.template_text,
+          !!formState.inputImage,
+          0.20
+        )
+        setCostEstimation(result)
+      } else {
+        setCostEstimation({ canProceed: true, totalCost: 0 })
+      }
     } else {
       setCostEstimation({ canProceed: true, totalCost: 0 })
     }
-  }, [formState.text, formState.selectedModelIds, formState.inputImage, models])
+  }, [formState.text, formState.selectedModelIds, formState.selectedPromptId, formState.inputImage, models, prompts])
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormState(prev => ({
@@ -115,7 +137,12 @@ export function GenerationForm({ models, prompts, onGenerate }: GenerationFormPr
     }
     
     const selectedModels = models.filter(m => formState.selectedModelIds.includes(m.id))
-    const selectedPrompt = prompts.find(p => p.id === formState.selectedPromptId)!
+    const selectedPrompt = prompts.find(p => p.id === formState.selectedPromptId)
+    
+    if (!selectedPrompt) {
+      console.error('No prompt selected or prompt not found')
+      return
+    }
     
     setIsGenerating(true)
     setProgress(null)
@@ -240,14 +267,18 @@ export function GenerationForm({ models, prompts, onGenerate }: GenerationFormPr
             id="prompt"
             value={formState.selectedPromptId}
             onChange={handlePromptChange}
-            disabled={isGenerating}
+            disabled={isGenerating || prompts.length === 0}
             className="input-field"
           >
-            {prompts.map((prompt) => (
-              <option key={prompt.id} value={prompt.id}>
-                {prompt.name}
-              </option>
-            ))}
+            {prompts.length === 0 ? (
+              <option value="">Loading prompts...</option>
+            ) : (
+              prompts.map((prompt) => (
+                <option key={prompt.id} value={prompt.id}>
+                  {prompt.name}
+                </option>
+              ))
+            )}
           </select>
           {formState.selectedPromptId && (
             <div className="mt-2 p-3 bg-gray-50 rounded-md">
@@ -290,7 +321,7 @@ export function GenerationForm({ models, prompts, onGenerate }: GenerationFormPr
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isGenerating || !costEstimation.canProceed}
+            disabled={isGenerating || !costEstimation.canProceed || prompts.length === 0}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? 'Generating...' : 'Generate Dashboard'}

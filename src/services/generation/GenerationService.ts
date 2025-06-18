@@ -1,4 +1,5 @@
 // GenerationService - Core generation pipeline for MetX prompting tool
+import { OpenAIService } from './OpenAIService'
 import type { 
   Model, 
   GenerationProgress, 
@@ -26,6 +27,18 @@ export class GenerationService {
     return textTokens + imageTokens
   }
 
+  static estimateTokensForGeneration(
+    userInput: string, 
+    promptTemplate: string, 
+    hasImage: boolean = false
+  ): number {
+    // Process the full prompt that will be sent to the LLM
+    const fullPrompt = this.processPromptTemplate(promptTemplate, userInput)
+    
+    // Estimate tokens for the complete prompt
+    return this.estimateTokens(fullPrompt, hasImage)
+  }
+
   static checkCostGuardrails(
     models: Model[], 
     estimatedTokens: number, 
@@ -47,6 +60,17 @@ export class GenerationService {
       canProceed: true,
       totalCost
     }
+  }
+
+  static checkCostGuardrailsForGeneration(
+    models: Model[],
+    userInput: string,
+    promptTemplate: string,
+    hasImage: boolean = false,
+    maxCostChf: number = 0.20
+  ): CostGuardrailResult {
+    const estimatedTokens = this.estimateTokensForGeneration(userInput, promptTemplate, hasImage)
+    return this.checkCostGuardrails(models, estimatedTokens, maxCostChf)
   }
 
   // Prompt template processing
@@ -139,7 +163,7 @@ export class GenerationService {
     }
   }
 
-  // Model execution methods (to be implemented)
+  // Model execution methods using real OpenAI integration
   static async executeGeneration(
     prompt: string,
     model: Model,
@@ -151,35 +175,13 @@ export class GenerationService {
     latency_ms: number;
     error?: GenerationError;
   }> {
-    // TODO: Implement actual OpenAI API calls
-    // This is a placeholder for the actual implementation
-    const startTime = Date.now()
-    
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
-      
-      // Simulate successful response
-      const mockResponse = {
-        layers: ["temperature", "precipitation"],
-        region: "CH",
-        timeRange: "24h"
-      }
-      
-      const latency = Date.now() - startTime
-      const estimatedTokens = this.estimateTokens(prompt, !!imageUrl)
-      
-      return {
-        success: true,
-        content: JSON.stringify(mockResponse, null, 2),
-        tokens_used: estimatedTokens,
-        latency_ms: latency
-      }
+      // Use real OpenAI service instead of mock
+      return await OpenAIService.generateCompletion(prompt, model, imageUrl)
     } catch (error) {
-      const latency = Date.now() - startTime
       return {
         success: false,
-        latency_ms: latency,
+        latency_ms: 0,
         error: this.handleGenerationError(error as Error, model.id)
       }
     }
@@ -203,54 +205,24 @@ export class GenerationService {
     total_cost_chf: number;
     total_latency_ms: number;
   }> {
-    // TODO: Implement actual parallel execution with OpenAI
-    // This is a placeholder for the actual implementation
-    
-    const userInputId = `temp-${Date.now()}`
-    let progress = this.createProgressTracker(userInputId, models.map(m => m.id))
-    
-    if (onProgress) {
-      onProgress(progress)
-    }
-    
-    const results = []
-    let totalCost = 0
-    let totalLatency = 0
-    
-    for (const model of models) {
-      // Update progress to show current model
-      progress = this.updateProgress(progress, 'running', model.id)
-      if (onProgress) {
-        onProgress(progress)
-      }
-      
-      const result = await this.executeGeneration(prompt, model, imageUrl)
-      
-      const cost = result.tokens_used ? this.calculateCost(model, result.tokens_used) : 0
-      totalCost += cost
-      totalLatency += result.latency_ms
-      
-      results.push({
+    // Use real OpenAI service for true parallel execution
+    try {
+      return await OpenAIService.executeParallelGeneration(prompt, models, imageUrl, onProgress)
+    } catch (error) {
+      // Fallback error handling
+      const results = models.map(model => ({
         model_id: model.id,
-        success: result.success,
-        content: result.content,
-        tokens_used: result.tokens_used,
-        latency_ms: result.latency_ms,
-        cost_chf: cost,
-        error: result.error
-      })
+        success: false,
+        latency_ms: 0,
+        cost_chf: 0,
+        error: this.handleGenerationError(error as Error, model.id)
+      }))
       
-      // Update progress to mark model as completed
-      progress = this.updateProgress(progress, 'running', undefined, model.id)
-      if (onProgress) {
-        onProgress(progress)
+      return {
+        results,
+        total_cost_chf: 0,
+        total_latency_ms: 0
       }
-    }
-    
-    return {
-      results,
-      total_cost_chf: totalCost,
-      total_latency_ms: totalLatency
     }
   }
 } 

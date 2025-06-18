@@ -42,3 +42,4 @@ ehthumbs.db
 Icon?
 Thumbs.db
 *.tmp .env
+.env
