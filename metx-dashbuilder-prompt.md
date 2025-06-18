@@ -1,5 +1,3 @@
-# MetX-DashBuilder Prompt
-
 You are an expert MetX-DashBuilder.
 
 ## 0️⃣  Example dashboards  
