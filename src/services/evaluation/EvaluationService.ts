@@ -99,10 +99,6 @@ export class EvaluationService {
     'layers', 'region'
   ]
 
-  private static readonly RECOMMENDED_METX_FIELDS = [
-    'timeRange', 'visualization', 'version'
-  ]
-
   /**
    * Evaluates how well the generated JSON contains the weather parameters
    * requested in the user input
@@ -306,22 +302,41 @@ export class EvaluationService {
     const lowerText = text.toLowerCase()
     const foundParameters: string[] = []
 
-    for (const parameter of this.WEATHER_PARAMETERS) {
-      if (lowerText.includes(parameter.toLowerCase())) {
-        foundParameters.push(parameter.toLowerCase())
-      }
-    }
-
-    // Check synonyms
-    for (const [canonical, synonyms] of Object.entries(this.PARAMETER_SYNONYMS)) {
-      for (const synonym of synonyms) {
-        if (lowerText.includes(synonym.toLowerCase()) && !foundParameters.includes(canonical)) {
-          foundParameters.push(canonical)
+    // Check for canonical parameters first (avoid duplicates like temp/temperature)
+    const canonicalParams = ['temperature', 'precipitation', 'wind', 'humidity', 'pressure', 'visibility', 'clouds']
+    
+    for (const canonical of canonicalParams) {
+      const synonyms = this.PARAMETER_SYNONYMS[canonical] || []
+      const allVariations = [canonical, ...synonyms]
+      
+      for (const variation of allVariations) {
+        if (lowerText.includes(variation.toLowerCase())) {
+          if (!foundParameters.includes(canonical)) {
+            foundParameters.push(canonical)
+          }
+          break // Found one variation, no need to check others for this canonical
         }
       }
     }
 
-    return [...new Set(foundParameters)] // Remove duplicates
+    // Check for other specific parameters (aviation, marine, etc.)
+    const otherParams = this.WEATHER_PARAMETERS.filter(param => 
+      !canonicalParams.includes(param) && 
+      !Object.values(this.PARAMETER_SYNONYMS).flat().includes(param)
+    )
+    
+    for (const parameter of otherParams) {
+      if (lowerText.includes(parameter.toLowerCase())) {
+        // Keep original case for aviation parameters like METAR, TAF
+        if (['METAR', 'TAF'].includes(parameter)) {
+          foundParameters.push(parameter)
+        } else {
+          foundParameters.push(parameter.toLowerCase())
+        }
+      }
+    }
+
+    return foundParameters
   }
 
   /**
