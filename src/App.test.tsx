@@ -27,6 +27,7 @@ vi.mock('./services/prompts/PromptService', () => ({
         json_prefix: '{"layers": [',
         json_suffix: ']}',
         use_placeholder: false,
+        is_default: false,
         version: 1
       }
     ]))
@@ -124,7 +125,7 @@ describe('App - Rating Functionality', () => {
     // Generate a mock result by filling the form and submitting
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const modelCheckbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByText('Generate Dashboard')
+    const generateButton = screen.getByText('Run')
 
     await user.type(textInput, 'Test dashboard')
     await user.click(modelCheckbox)
@@ -159,7 +160,7 @@ describe('App - Rating Functionality', () => {
     // Generate a result
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const modelCheckbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByText('Generate Dashboard')
+    const generateButton = screen.getByText('Run')
 
     await user.type(textInput, 'Test dashboard')
     await user.click(modelCheckbox)

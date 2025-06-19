@@ -30,10 +30,11 @@ describe('GenerationForm', () => {
       id: 'prompt-1',
       name: 'MetX Default',
       description: 'Default MetX dashboard template',
-      template_text: 'Generate MetX dashboard for: {{output}}',
+      template_text: 'Generate MetX dashboard for: {{user_input}}',
       json_prefix: '{"dashboard": {',
       json_suffix: '}}',
       use_placeholder: true,
+      is_default: false,
       version: 1,
       created_by: 'user-1',
       created_at: '2024-01-01T00:00:00Z',
@@ -63,7 +64,7 @@ describe('GenerationForm', () => {
       current_model: undefined
     })
     ;(GenerationService.processPromptTemplate as any).mockImplementation((template: string, input: string) => 
-      template.replace('{{output}}', input)
+      template.replace('{{user_input}}', input)
     )
   })
 
@@ -80,7 +81,7 @@ describe('GenerationForm', () => {
     expect(screen.getByText('Upload Input Image (optional)')).toBeInTheDocument()
     expect(screen.getByText('Select Models')).toBeInTheDocument()
     expect(screen.getByText('Select Prompt Template')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Generate Dashboard' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Run' })).toBeInTheDocument()
   })
 
   it('displays all available models with checkboxes', () => {
@@ -124,7 +125,7 @@ describe('GenerationForm', () => {
       />
     )
 
-    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
+    const generateButton = screen.getByRole('button', { name: 'Run' })
     await user.click(generateButton)
 
     await waitFor(() => {
@@ -145,7 +146,7 @@ describe('GenerationForm', () => {
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     await user.type(textInput, 'Show temperature data for Switzerland')
 
-    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
+    const generateButton = screen.getByRole('button', { name: 'Run' })
     await user.click(generateButton)
 
     await waitFor(() => {
@@ -205,7 +206,7 @@ describe('GenerationForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Estimated cost exceeds maximum threshold/)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Generate Dashboard' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Run' })).toBeDisabled()
     })
   })
 
@@ -254,7 +255,7 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
+    const generateButton = screen.getByRole('button', { name: 'Run' })
 
     await user.type(textInput, 'Show temperature data for Switzerland')
     await user.click(gpt4Checkbox)
@@ -286,14 +287,14 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
+    const generateButton = screen.getByRole('button', { name: 'Run' })
 
     await user.type(textInput, 'Show temperature data')
     await user.click(gpt4Checkbox)
     await user.click(generateButton)
 
-    expect(screen.getByRole('button', { name: 'Generating...' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Generating...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Running...' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Running...' })).toBeDisabled()
   })
 
   it('displays progress information during generation', async () => {
@@ -329,17 +330,142 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
+    const generateButton = screen.getByRole('button', { name: 'Run' })
 
     await user.type(textInput, 'Show temperature data')
     await user.click(gpt4Checkbox)
     await user.click(generateButton)
 
     await waitFor(() => {
-      // Check for progress indication - could be "Generating..." or progress text
-      const generatingButton = screen.queryByText(/Generating/)
+      // Check for progress indication - could be "Running..." or progress text
+      const runningButton = screen.queryByText(/Running/)
       const progressText = screen.queryByText(/Currently running/)
-      expect(generatingButton || progressText).toBeTruthy()
+      expect(runningButton || progressText).toBeTruthy()
     }, { timeout: 3000 })
+  })
+
+  it('displays the processed prompt after generation', async () => {
+    const user = userEvent.setup()
+    ;(GenerationService.executeParallelGeneration as any).mockResolvedValue({
+      results: [
+        {
+          model_id: 'gpt-4.1',
+          success: true,
+          content: '{"layers": ["temperature"]}',
+          cost_chf: 0.06
+        }
+      ],
+      total_cost_chf: 0.06,
+      total_latency_ms: 2000
+    })
+
+    render(
+      <GenerationForm
+        models={mockModels}
+        prompts={mockPrompts}
+        onGenerate={mockOnGenerate}
+      />
+    )
+
+    const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
+    const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
+    const generateButton = screen.getByRole('button', { name: 'Run' })
+
+    await user.type(textInput, 'Show temperature data for Switzerland')
+    await user.click(gpt4Checkbox)
+    await user.click(generateButton)
+
+    // Wait for generation to complete and prompt to be displayed
+    await waitFor(() => {
+      expect(screen.getByText('Complete Prompt Sent to LLM')).toBeInTheDocument()
+      expect(screen.getByText('View Full Prompt')).toBeInTheDocument()
+    })
+
+    // Click to expand the prompt
+    const viewPromptButton = screen.getByText('View Full Prompt')
+    await user.click(viewPromptButton)
+
+    // Verify the processed prompt is displayed
+    await waitFor(() => {
+      expect(screen.getByText('Hide Prompt')).toBeInTheDocument()
+      expect(screen.getByText('Generate MetX dashboard for: Show temperature data for Switzerland', { exact: false })).toBeInTheDocument()
+      expect(screen.getByText(/This is the exact prompt sent to the API after variable replacement/)).toBeInTheDocument()
+    })
+
+    // Click to hide the prompt
+    const hidePromptButton = screen.getByText('Hide Prompt')
+    await user.click(hidePromptButton)
+
+    // Verify the prompt is hidden
+    await waitFor(() => {
+      expect(screen.getByText('View Full Prompt')).toBeInTheDocument()
+      expect(screen.queryByText('Hide Prompt')).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows processing state when results are being processed', async () => {
+    render(
+      <GenerationForm
+        models={mockModels}
+        prompts={mockPrompts}
+        isProcessingResults={true}
+        onGenerate={mockOnGenerate}
+      />
+    )
+
+    // Verify processing indicator is shown
+    expect(screen.getByText('Processing Results')).toBeInTheDocument()
+    expect(screen.getByText('Processing responses and saving results...')).toBeInTheDocument()
+    
+    // Verify button shows processing state
+    expect(screen.getByRole('button', { name: 'Processing Results...' })).toBeDisabled()
+    
+    // Verify form is disabled during processing
+    expect(screen.getByLabelText('Describe your MetX dashboard requirements')).toBeDisabled()
+  })
+
+  it('selects default prompt instead of first prompt', () => {
+    const promptsWithDefault: Prompt[] = [
+      {
+        id: 'prompt-1',
+        name: 'First Prompt',
+        description: 'First prompt (not default)',
+        template_text: 'First template: {{user_input}}',
+        json_prefix: '{"dashboard": {',
+        json_suffix: '}}',
+        use_placeholder: true,
+        is_default: false,
+        version: 1,
+        created_by: 'user-1',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      },
+      {
+        id: 'prompt-2',
+        name: 'Default Prompt',
+        description: 'This is the default prompt',
+        template_text: 'Default template: {{user_input}}',
+        json_prefix: '{"dashboard": {',
+        json_suffix: '}}',
+        use_placeholder: true,
+        is_default: true,
+        version: 1,
+        created_by: 'user-1',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
+    ]
+
+    render(
+      <GenerationForm
+        models={mockModels}
+        prompts={promptsWithDefault}
+        onGenerate={mockOnGenerate}
+      />
+    )
+
+    // Verify the default prompt is selected, not the first one
+    const promptSelect = screen.getByDisplayValue('Default Prompt')
+    expect(promptSelect).toBeInTheDocument()
   })
 }) 

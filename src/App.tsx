@@ -19,6 +19,7 @@ function App() {
   const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([])
   const [currentView, setCurrentView] = useState<'generation' | 'prompts' | 'editor'>('generation')
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null)
+  const [isProcessingResults, setIsProcessingResults] = useState(false)
   const [ratingModal, setRatingModal] = useState<{
     isOpen: boolean;
     resultIndex: number | null;
@@ -334,6 +335,11 @@ function App() {
     let prefix = prompt.json_prefix || ''
     const suffix = prompt.json_suffix || ''
     
+    // If no prefix/suffix, just return the raw output as formatted JSON
+    if (!prefix && !suffix) {
+      return JSON.stringify(rawOutput, null, 2)
+    }
+    
     // Get location-specific coordinates
     const locationCoords = getLocationCoordinates(userInput || '')
     
@@ -369,7 +375,23 @@ function App() {
         .join('\n')
     }
     
-    return prefix + formattedOutput + suffix
+    const result = prefix + formattedOutput + suffix
+    
+    // Test if the result is valid JSON
+    try {
+      JSON.parse(result)
+      return result
+    } catch (error) {
+      console.warn('Constructed JSON is invalid, falling back to raw output:', error)
+      console.log('Invalid JSON preview:', result.substring(0, 200) + '...')
+      // Return the raw output as a valid JSON fallback
+      return JSON.stringify({
+        layers: Array.isArray(rawOutput) ? rawOutput : [rawOutput],
+        note: 'Prefix/suffix combination failed, returning raw layers',
+        original_prefix: prefix.substring(0, 100) + '...',
+        original_suffix: suffix.substring(0, 100) + '...'
+      }, null, 2)
+    }
   }
 
   // Helper function to copy JSON to clipboard
@@ -420,6 +442,9 @@ function App() {
   }) => {
     console.log('Generation request:', data)
     
+    // Set processing state to show user that results are being processed
+    setIsProcessingResults(true)
+    
     try {
       // Use a fixed demo user ID that exists in auth.users for development
       // In production, this should use: await AuthService.getCurrentUser()
@@ -461,7 +486,22 @@ function App() {
         if (result.success && result.content) {
           try {
             // The LLM should return JSON - try to parse it first
-            rawLlmOutput = JSON.parse(result.content)
+            let contentToParse = result.content.trim()
+            
+            // Debug logging to understand the content format
+            console.log('Parsing content preview:', contentToParse.substring(0, 100) + '...')
+            console.log('Content starts with {:', contentToParse.startsWith('{'))
+            console.log('Content includes },:', contentToParse.includes('},'))
+            console.log('Content starts with [:', contentToParse.startsWith('['))
+            
+            // Check if content looks like comma-separated JSON objects (not wrapped in array)
+            // This handles cases where models return {obj1},{obj2},{obj3} instead of [{obj1},{obj2},{obj3}]
+            if (contentToParse.startsWith('{') && contentToParse.includes('},') && !contentToParse.startsWith('[')) {
+              console.log('Detected comma-separated JSON objects, wrapping in array')
+              contentToParse = '[' + contentToParse + ']'
+            }
+            
+            rawLlmOutput = JSON.parse(contentToParse)
             
             // Check if it's a single layer object or array of layers
             let layersContent: any
@@ -487,7 +527,17 @@ function App() {
             
             // Construct complete JSON with prefix and suffix
             const completeJsonString = constructCompleteJson(layersContent, data.selectedPrompt, data.text)
-            final_json = JSON.parse(completeJsonString)
+            try {
+              final_json = JSON.parse(completeJsonString)
+            } catch (jsonError) {
+              console.error('Failed to parse complete JSON string:', jsonError)
+              console.log('Complete JSON string that failed:', completeJsonString.substring(0, 500) + '...')
+              // Fallback: use the raw layers content as final_json
+              final_json = {
+                layers: layersContent,
+                error: 'JSON prefix/suffix combination failed, using raw layers'
+              }
+            }
             
           } catch (error) {
             console.error('Error parsing LLM response:', error)
@@ -496,7 +546,16 @@ function App() {
             // Try to parse the content as raw layer JSON (without wrapping object)
             try {
               // The content might be a raw layer object or array - try to parse it directly
-              const possibleLayer = JSON.parse(result.content)
+              let fallbackContentToParse = result.content.trim()
+              
+              // Check if content looks like comma-separated JSON objects (not wrapped in array)
+              // This handles cases where models return {obj1},{obj2},{obj3} instead of [{obj1},{obj2},{obj3}]
+              if (fallbackContentToParse.startsWith('{') && fallbackContentToParse.includes('},') && !fallbackContentToParse.startsWith('[')) {
+                console.log('Detected comma-separated JSON objects in fallback, wrapping in array')
+                fallbackContentToParse = '[' + fallbackContentToParse + ']'
+              }
+              
+              const possibleLayer = JSON.parse(fallbackContentToParse)
               let layersArray: any[]
               
               if (Array.isArray(possibleLayer)) {
@@ -520,7 +579,17 @@ function App() {
               
               rawLlmOutput = layersArray
               const completeJsonString = constructCompleteJson(layersArray, data.selectedPrompt, data.text)
-              final_json = JSON.parse(completeJsonString)
+              try {
+                final_json = JSON.parse(completeJsonString)
+              } catch (jsonError) {
+                console.error('Failed to parse complete JSON string (fallback):', jsonError)
+                console.log('Complete JSON string that failed (fallback):', completeJsonString.substring(0, 500) + '...')
+                // Final fallback: use the raw layers array as final_json
+                final_json = {
+                  layers: layersArray,
+                  error: 'JSON prefix/suffix combination failed, using raw layers'
+                }
+              }
               
             } catch (innerError) {
               console.error('Failed to parse as layer structure:', innerError)
@@ -614,6 +683,9 @@ function App() {
       
       setGenerationResults(errorResults)
       setEvaluationResults([])
+    } finally {
+      // Clear processing state regardless of success or failure
+      setIsProcessingResults(false)
     }
   }
 
@@ -650,6 +722,30 @@ function App() {
     setEditingPrompt(null)
     initializePromptForm(null)
     setCurrentView('editor')
+  }
+
+  const handleSetPromptAsDefault = async (prompt: Prompt) => {
+    try {
+      await PromptService.setPromptAsDefault(prompt.id)
+      console.log('Prompt set as default successfully')
+      // Reload prompts to reflect changes
+      await loadPrompts()
+    } catch (error) {
+      console.error('Failed to set prompt as default:', error)
+      alert('Failed to set prompt as default. Please try again.')
+    }
+  }
+
+  const handleUnsetPromptAsDefault = async (prompt: Prompt) => {
+    try {
+      await PromptService.unsetPromptAsDefault(prompt.id)
+      console.log('Prompt unset as default successfully')
+      // Reload prompts to reflect changes
+      await loadPrompts()
+    } catch (error) {
+      console.error('Failed to unset prompt as default:', error)
+      alert('Failed to unset prompt as default. Please try again.')
+    }
   }
 
   const handleSavePrompt = async () => {
@@ -799,14 +895,14 @@ function App() {
       return { errors, warnings }
     }
     
-    // Check for required {{output}} placeholder when use_placeholder is true
+    // Check for required {{user_input}} or {{output}} placeholder when use_placeholder is true
     if (usePlaceholder) {
-      if (!trimmedText.includes('{{output}}')) {
-        errors.push('Template must include {{output}} placeholder when "Use placeholder" is enabled')
+      if (!trimmedText.includes('{{user_input}}') && !trimmedText.includes('{{output}}')) {
+        errors.push('Template must include {{user_input}} placeholder when "Use placeholder" is enabled')
       }
     } else {
-      if (trimmedText.includes('{{output}}')) {
-        warnings.push('Template contains {{output}} placeholder but "Use placeholder" is not enabled')
+      if (trimmedText.includes('{{user_input}}') || trimmedText.includes('{{output}}')) {
+        warnings.push('Template contains user input placeholder but "Use placeholder" is not enabled')
       }
     }
     
@@ -902,6 +998,7 @@ function App() {
       console.log('Initializing prompt form:', {
         prompt_name: prompt.name,
         use_placeholder: prompt.use_placeholder,
+        has_user_input: (prompt.template_text || '').includes('{{user_input}}'),
         has_output: (prompt.template_text || '').includes('{{output}}'),
         form_data: formData
       })
@@ -949,7 +1046,8 @@ function App() {
       template_text_length: promptForm.template_text?.length || 0,
       template_text_trimmed_length: (promptForm.template_text?.trim() || '').length,
       use_placeholder: promptForm.use_placeholder,
-      has_output_placeholder: (promptForm.template_text || '').includes('{{output}}'),
+              has_user_input_placeholder: (promptForm.template_text || '').includes('{{user_input}}'),
+        has_output_placeholder: (promptForm.template_text || '').includes('{{output}}'),
       template_errors: templateValidation.errors,
       json_errors: jsonValidation.errors,
       all_errors: allErrors,
@@ -1048,6 +1146,7 @@ function App() {
                               <GenerationForm
                   models={models}
                   prompts={prompts}
+                  isProcessingResults={isProcessingResults}
                   onGenerate={handleGenerate}
                 />
 
@@ -1173,10 +1272,17 @@ function App() {
                   </div>
                 ) : (
                   prompts.map(prompt => (
-                  <div key={prompt.id} className="card">
+                  <div key={prompt.id} className={`card ${prompt.is_default ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{prompt.name}</h3>
+                        <div className="flex items-center space-x-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{prompt.name}</h3>
+                          {prompt.is_default && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              📌 Default
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">{prompt.description}</p>
                         <div className="mt-3">
                           <p className="text-xs text-gray-500 mb-1">Template Preview:</p>
@@ -1190,6 +1296,23 @@ function App() {
                         </div>
                       </div>
                       <div className="flex space-x-2 ml-4">
+                        {prompt.is_default ? (
+                          <button
+                            onClick={() => handleUnsetPromptAsDefault(prompt)}
+                            className="px-3 py-1 text-sm text-blue-600 border border-blue-300 rounded hover:bg-blue-50"
+                            title="Unpin as default"
+                          >
+                            Unpin
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleSetPromptAsDefault(prompt)}
+                            className="px-3 py-1 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+                            title="Pin as default"
+                          >
+                            Pin as Default
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEditPrompt(prompt)}
                           className="btn-secondary text-sm py-1"
@@ -1295,10 +1418,10 @@ function App() {
                         setPromptForm(prev => ({ ...prev, template_text: newValue }))
                         // useEffect will handle validation automatically
                       }}
-                      placeholder="Generate a comprehensive weather dashboard for {{output}}..."
+                      placeholder="Generate a comprehensive weather dashboard for {{user_input}}..."
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Use <code>{'{{output}}'}</code> to include the user's weather request. Enable "Use placeholder" below.
+                                              Use <code>{'{{user_input}}'}</code> to include the user's weather request. Enable "Use placeholder" below.
                     </p>
                   </div>
                   
@@ -1314,7 +1437,7 @@ function App() {
                         className="rounded"
                       />
                       <span className="text-sm text-gray-700">
-                        Use <code>{'{{output}}'}</code> placeholder (replaces user input in template)
+                        Use <code>{'{{user_input}}'}</code> placeholder (replaces user input in template)
                       </span>
                     </label>
                   </div>

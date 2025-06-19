@@ -101,7 +101,7 @@ describe('GenerationService', () => {
 
     it('should estimate tokens for complete generation including prompt template', () => {
       const userInput = 'temperature data for Switzerland'
-      const promptTemplate = 'Generate a MetX dashboard based on: {{output}}. Include all necessary parameters.'
+      const promptTemplate = 'Generate a MetX dashboard based on: {{user_input}}. Include all necessary parameters.'
       const hasImage = false
       
       const estimatedTokens = GenerationService.estimateTokensForGeneration(userInput, promptTemplate, hasImage)
@@ -115,7 +115,7 @@ describe('GenerationService', () => {
 
     it('should estimate tokens for generation with image', () => {
       const userInput = 'weather map analysis'
-      const promptTemplate = 'Analyze this image: {{output}}'
+      const promptTemplate = 'Analyze this image: {{user_input}}'
       const hasImage = true
       
       const estimatedTokens = GenerationService.estimateTokensForGeneration(userInput, promptTemplate, hasImage)
@@ -166,7 +166,7 @@ describe('GenerationService', () => {
         { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06 }
       ]
       const userInput = 'temperature and precipitation data for Switzerland'
-      const promptTemplate = 'Generate a comprehensive MetX dashboard based on: {{output}}. Include all necessary weather parameters, layers, and visualization settings for the requested region.'
+      const promptTemplate = 'Generate a comprehensive MetX dashboard based on: {{user_input}}. Include all necessary weather parameters, layers, and visualization settings for the requested region.'
       const hasImage = false
       const maxCostChf = 0.05
 
@@ -185,7 +185,7 @@ describe('GenerationService', () => {
         { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', price_per_1k_tokens: 0.005 }
       ]
       const userInput = 'weather map'
-      const promptTemplate = 'Analyze this image: {{output}}'
+      const promptTemplate = 'Analyze this image: {{user_input}}'
       const hasImage = true
       const maxCostChf = 0.20
 
@@ -200,8 +200,8 @@ describe('GenerationService', () => {
   })
 
   describe('Prompt Template Processing', () => {
-    it('should replace {{output}} placeholder correctly', () => {
-      const template = 'Generate a MetX dashboard based on: {{output}}'
+    it('should replace {{user_input}} placeholder correctly', () => {
+      const template = 'Generate a MetX dashboard based on: {{user_input}}'
       const userInput = 'temperature data for Switzerland'
       const processed = GenerationService.processPromptTemplate(template, userInput)
       
@@ -217,11 +217,19 @@ describe('GenerationService', () => {
     })
 
     it('should handle multiple placeholders', () => {
-      const template = 'Create {{output}} dashboard for {{output}} visualization'
+      const template = 'Create {{user_input}} dashboard for {{user_input}} visualization'
       const userInput = 'weather'
       const processed = GenerationService.processPromptTemplate(template, userInput)
       
       expect(processed).toBe('Create weather dashboard for weather visualization')
+    })
+
+    it('should support legacy {{output}} placeholder for backward compatibility', () => {
+      const template = 'Generate a MetX dashboard based on: {{output}}'
+      const userInput = 'temperature data for Switzerland'
+      const processed = GenerationService.processPromptTemplate(template, userInput)
+      
+      expect(processed).toBe('Generate a MetX dashboard based on: temperature data for Switzerland')
     })
   })
 

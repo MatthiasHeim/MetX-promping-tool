@@ -14,7 +14,7 @@ vi.mock('../../lib/supabase', () => ({
               id: 'test-id-1',
               name: 'Test Prompt',
               description: 'A test prompt',
-              template_text: 'Test template: {{output}}',
+              template_text: 'Test template: {{user_input}}',
               json_prefix: '{"test": {',
               json_suffix: '}}',
               use_placeholder: true,
@@ -34,7 +34,7 @@ vi.mock('../../lib/supabase', () => ({
               id: 'new-test-id',
               name: 'New Test Prompt',
               description: 'A new test prompt',
-              template_text: 'New test template: {{output}}',
+              template_text: 'New test template: {{user_input}}',
               json_prefix: '{"new": {',
               json_suffix: '}}',
               use_placeholder: true,
@@ -55,7 +55,7 @@ vi.mock('../../lib/supabase', () => ({
                 id: 'test-id-1',
                 name: 'Updated Test Prompt',
                 description: 'An updated test prompt',
-                template_text: 'Updated test template: {{output}}',
+                template_text: 'Updated test template: {{user_input}}',
                 json_prefix: '{"updated": {',
                 json_suffix: '}}',
                 use_placeholder: true,
@@ -89,14 +89,14 @@ describe('PromptService', () => {
     
     expect(prompts).toHaveLength(1)
     expect(prompts[0].name).toBe('Test Prompt')
-    expect(prompts[0].template_text).toBe('Test template: {{output}}')
+          expect(prompts[0].template_text).toBe('Test template: {{user_input}}')
   })
 
   it('should create a new prompt successfully', async () => {
     const newPrompt = {
       name: 'New Test Prompt',
       description: 'A new test prompt',
-      template_text: 'New test template: {{output}}',
+              template_text: 'New test template: {{user_input}}',
       json_prefix: '{"new": {',
       json_suffix: '}}',
       use_placeholder: true
@@ -106,7 +106,7 @@ describe('PromptService', () => {
     
     expect(createdPrompt.id).toBe('new-test-id')
     expect(createdPrompt.name).toBe('New Test Prompt')
-    expect(createdPrompt.template_text).toBe('New test template: {{output}}')
+          expect(createdPrompt.template_text).toBe('New test template: {{user_input}}')
   })
 
   it('should update a prompt successfully', async () => {

@@ -10,6 +10,7 @@ export interface Database {
           json_prefix: string | null
           json_suffix: string | null
           use_placeholder: boolean
+          is_default: boolean
           version: number
           created_by: string | null
           created_at: string
@@ -23,6 +24,7 @@ export interface Database {
           json_prefix?: string | null
           json_suffix?: string | null
           use_placeholder?: boolean
+          is_default?: boolean
           version?: number
           created_by?: string | null
           created_at?: string
@@ -36,6 +38,7 @@ export interface Database {
           json_prefix?: string | null
           json_suffix?: string | null
           use_placeholder?: boolean
+          is_default?: boolean
           version?: number
           created_by?: string | null
           updated_at?: string

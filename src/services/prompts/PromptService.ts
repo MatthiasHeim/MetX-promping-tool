@@ -186,4 +186,71 @@ export class PromptService {
       throw error
     }
   }
+
+  /**
+   * Set a prompt as the default one
+   * This will unset any existing default prompt and set the specified one as default
+   */
+  static async setPromptAsDefault(id: string): Promise<Prompt> {
+    try {
+      // First, unset all existing default prompts
+      const { error: unsetError } = await supabase
+        .from('prompts')
+        .update({ is_default: false })
+        .eq('is_default', true)
+
+      if (unsetError) {
+        console.error('Error unsetting existing default prompts:', unsetError)
+        throw new Error(`Failed to unset existing defaults: ${unsetError.message}`)
+      }
+
+      // Then set the specified prompt as default
+      const { data, error } = await supabase
+        .from('prompts')
+        .update({ 
+          is_default: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error setting prompt as default:', error)
+        throw new Error(`Failed to set prompt as default: ${error.message}`)
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error in setPromptAsDefault:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Unset a prompt as default
+   */
+  static async unsetPromptAsDefault(id: string): Promise<Prompt> {
+    try {
+      const { data, error } = await supabase
+        .from('prompts')
+        .update({ 
+          is_default: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error unsetting prompt as default:', error)
+        throw new Error(`Failed to unset prompt as default: ${error.message}`)
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error in unsetPromptAsDefault:', error)
+      throw error
+    }
+  }
 } 

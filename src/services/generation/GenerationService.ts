@@ -1,5 +1,6 @@
 // GenerationService - Core generation pipeline for MetX prompting tool
 import { OpenAIService } from './OpenAIService'
+import { OpenRouterService } from './OpenRouterService'
 import type { 
   Model, 
   GenerationProgress, 
@@ -75,7 +76,10 @@ export class GenerationService {
 
   // Prompt template processing
   static processPromptTemplate(template: string, userInput: string): string {
-    return template.replace(/\{\{output\}\}/g, userInput)
+    // Support both new {{user_input}} and legacy {{output}} placeholders
+    return template
+      .replace(/\{\{user_input\}\}/g, userInput)
+      .replace(/\{\{output\}\}/g, userInput) // Keep for backward compatibility
   }
 
   // JSON processing methods
@@ -163,7 +167,7 @@ export class GenerationService {
     }
   }
 
-  // Model execution methods using real OpenAI integration
+  // Model execution methods supporting both OpenAI and OpenRouter
   static async executeGeneration(
     prompt: string,
     model: Model,
@@ -176,8 +180,13 @@ export class GenerationService {
     error?: GenerationError;
   }> {
     try {
-      // Use real OpenAI service instead of mock
-      return await OpenAIService.generateCompletion(prompt, model, imageUrl)
+      // Route to appropriate service based on model provider
+      if (model.provider === 'openrouter') {
+        return await OpenRouterService.generateCompletion(prompt, model, imageUrl)
+      } else {
+        // Default to OpenAI service for 'openai' provider and others
+        return await OpenAIService.generateCompletion(prompt, model, imageUrl)
+      }
     } catch (error) {
       return {
         success: false,
@@ -205,9 +214,37 @@ export class GenerationService {
     total_cost_chf: number;
     total_latency_ms: number;
   }> {
-    // Use real OpenAI service for true parallel execution
     try {
-      return await OpenAIService.executeParallelGeneration(prompt, models, imageUrl, onProgress)
+      // Separate models by provider
+      const openaiModels = models.filter(model => model.provider !== 'openrouter')
+      const openrouterModels = models.filter(model => model.provider === 'openrouter')
+      
+      // Execute in parallel across providers
+      const promises: Promise<any>[] = []
+      
+      if (openaiModels.length > 0) {
+        promises.push(OpenAIService.executeParallelGeneration(prompt, openaiModels, imageUrl, onProgress))
+      }
+      
+      if (openrouterModels.length > 0) {
+        promises.push(OpenRouterService.executeParallelGeneration(prompt, openrouterModels, imageUrl, onProgress))
+      }
+      
+      const results = await Promise.all(promises)
+      
+      // Combine results from all providers
+      const combinedResults = results.reduce((acc, result) => {
+        acc.results.push(...result.results)
+        acc.total_cost_chf += result.total_cost_chf
+        acc.total_latency_ms = Math.max(acc.total_latency_ms, result.total_latency_ms)
+        return acc
+      }, {
+        results: [] as any[],
+        total_cost_chf: 0,
+        total_latency_ms: 0
+      })
+      
+      return combinedResults
     } catch (error) {
       // Fallback error handling
       const results = models.map(model => ({
