@@ -4,6 +4,7 @@ import { SignUpForm } from './components/auth/SignUpForm'
 import { GenerationForm } from './components/generation/GenerationForm'
 import { GenerationsView } from './components/generation/GenerationsView'
 import { EvaluationDisplay } from './components/evaluation/EvaluationDisplay'
+import { OverviewPage } from './components/OverviewPage'
 import { AuthService } from './services/auth/AuthService'
 
 import { GenerationService } from './services/generation/GenerationService'
@@ -19,7 +20,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false) // Require login
   const [generationResults, setGenerationResults] = useState<any[]>([])
   const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([])
-  const [currentView, setCurrentView] = useState<'generation' | 'generations' | 'prompts' | 'editor'>('generation')
+  const [currentView, setCurrentView] = useState<'overview' | 'generation' | 'generations' | 'prompts' | 'editor'>('overview')
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null)
   const [isProcessingResults, setIsProcessingResults] = useState(false)
   const [ratingModal, setRatingModal] = useState<{
@@ -143,10 +144,6 @@ function App() {
       setAuthLoading(false)
     }
   }
-
-
-
-
 
   // Helper function to get coordinates for different locations
   const getLocationCoordinates = (userInput: string) => {
@@ -779,7 +776,7 @@ function App() {
   
       setGenerationResults([])
       setEvaluationResults([])
-      setCurrentView('generation')
+      setCurrentView('overview')
       setEditingPrompt(null)
     } catch (error) {
       console.error('Logout error:', error)
@@ -1268,6 +1265,21 @@ function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex space-x-8" aria-label="Tabs">
               <button
+                onClick={() => setCurrentView('overview')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  currentView === 'overview'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Overview</span>
+                </div>
+              </button>
+              <button
                 onClick={() => setCurrentView('generation')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                   currentView === 'generation'
@@ -1320,15 +1332,23 @@ function App() {
       {/* Main Content */}
       <main className="py-8">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          {/* Overview View */}
+          {currentView === 'overview' && (
+            <OverviewPage 
+              onNavigateToGenerate={() => setCurrentView('generation')}
+              onNavigateToPrompts={() => setCurrentView('prompts')}
+            />
+          )}
+
           {/* Generation View */}
           {currentView === 'generation' && (
             <>
-                              <GenerationForm
-                  models={models}
-                  prompts={prompts}
-                  isProcessingResults={isProcessingResults}
-                  onGenerate={handleGenerate}
-                />
+              <GenerationForm
+                models={models}
+                prompts={prompts}
+                isProcessingResults={isProcessingResults}
+                onGenerate={handleGenerate}
+              />
 
               {/* Results Display */}
               {generationResults.length > 0 && (
