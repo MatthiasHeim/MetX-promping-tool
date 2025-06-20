@@ -65,6 +65,8 @@ export class AuthService {
           errorMessage = 'Invalid email or password'
         } else if (error.message.includes('Email not confirmed')) {
           errorMessage = 'Please check your email and confirm your account'
+        } else if (error.message.includes('Email sending has been disabled')) {
+          errorMessage = 'Authentication temporarily unavailable. Please try again later.'
         }
 
         return {

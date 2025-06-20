@@ -138,4 +138,11 @@
   .input-field-error:focus {
     box-shadow: 0 0 0 2px #ef4444;
   }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }

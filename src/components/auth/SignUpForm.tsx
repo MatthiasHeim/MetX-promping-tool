@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { cn } from '@/lib/utils'
 import { AuthService, type AuthUser, type ValidationResult } from '../../services/auth/AuthService'
 
 interface SignUpFormProps {
@@ -98,94 +99,103 @@ export function SignUpForm({ onSwitchToSignIn, onSignUpSuccess }: SignUpFormProp
     Object.keys(errors).length === 0
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
+    <div className="bg-white shadow-xl rounded-lg px-6 py-8 max-w-md mx-auto">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
         <p className="text-gray-600">
           Join the MetX prompting tool
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
         {submitError && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-sm text-red-800">{submitError}</p>
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{submitError}</p>
           </div>
         )}
 
-        <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             Email
           </label>
           <input
             id="email"
+            name="email"
             type="email"
+            autoComplete="email"
             value={formData.email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
             onBlur={(e: React.FocusEvent<HTMLInputElement>) => handleInputBlur('email', e.target.value)}
             placeholder="Enter your email"
             disabled={isLoading}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={cn(
+              'input-field',
+              errors.email && 'input-field-error'
+            )}
           />
           {errors.email && (
-            <p className="text-sm text-red-600">{errors.email}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
             Password
           </label>
           <input
             id="password"
+            name="password"
             type="password"
+            autoComplete="new-password"
             value={formData.password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('password', e.target.value)}
             onBlur={(e: React.FocusEvent<HTMLInputElement>) => handleInputBlur('password', e.target.value)}
             placeholder="Enter your password"
             disabled={isLoading}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.password ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={cn(
+              'input-field',
+              errors.password && 'input-field-error'
+            )}
           />
           {errors.password && (
-            <p className="text-sm text-red-600">{errors.password}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
             Confirm Password
           </label>
           <input
             id="confirmPassword"
+            name="confirmPassword"
             type="password"
+            autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('confirmPassword', e.target.value)}
             onBlur={(e: React.FocusEvent<HTMLInputElement>) => handleInputBlur('confirmPassword', e.target.value)}
             placeholder="Confirm your password"
             disabled={isLoading}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={cn(
+              'input-field',
+              errors.confirmPassword && 'input-field-error'
+            )}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-red-600">{errors.confirmPassword}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
           )}
         </div>
 
         <button
           type="submit"
           disabled={isLoading || !isFormValid}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Creating Account...' : 'Create Account'}
         </button>
       </form>
 
-      <div className="text-center">
+      <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Already have an account?{' '}
           <button

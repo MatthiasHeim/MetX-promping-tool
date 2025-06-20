@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { LoginForm } from './components/auth/LoginForm'
+import { SignUpForm } from './components/auth/SignUpForm'
 import { GenerationForm } from './components/generation/GenerationForm'
+import { GenerationsView } from './components/generation/GenerationsView'
 import { EvaluationDisplay } from './components/evaluation/EvaluationDisplay'
 import { AuthService } from './services/auth/AuthService'
 import { EvaluationService } from './services/evaluation/EvaluationService'
@@ -16,7 +18,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false) // Require login
   const [generationResults, setGenerationResults] = useState<any[]>([])
   const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([])
-  const [currentView, setCurrentView] = useState<'generation' | 'prompts' | 'editor'>('generation')
+  const [currentView, setCurrentView] = useState<'generation' | 'generations' | 'prompts' | 'editor'>('generation')
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null)
   const [isProcessingResults, setIsProcessingResults] = useState(false)
   const [ratingModal, setRatingModal] = useState<{
@@ -41,6 +43,7 @@ function App() {
   const [isInitializingForm, setIsInitializingForm] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
+  const [showSignUp, setShowSignUp] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
 
   // Form state for prompt editor
@@ -140,6 +143,8 @@ function App() {
       setAuthLoading(false)
     }
   }
+
+
 
 
 
@@ -478,9 +483,12 @@ function App() {
     setIsProcessingResults(true)
     
     try {
-      // Use a fixed demo user ID that exists in auth.users for development
-      // In production, this should use: await AuthService.getCurrentUser()
-      const userId = '550e8400-e29b-41d4-a716-446655440000'
+      // Get the current authenticated user's ID
+      const currentUser = await AuthService.getCurrentUser()
+      if (!currentUser) {
+        throw new Error('User not authenticated')
+      }
+      const userId = currentUser.id
       
       // Step 1: Create user input record in database
       const userInput = await UserInputService.createUserInput(
@@ -1158,18 +1166,29 @@ function App() {
             <img 
               src="/meteomatics_logo.png" 
               alt="Meteomatics" 
-              className="mx-auto h-16 w-auto mb-6"
+              className="mx-auto h-32 w-auto mb-6"
             />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">MetX Prompting Tool</h1>
             <p className="text-gray-600">AI-powered dashboard generation</p>
           </div>
 
-          <LoginForm 
-            onSubmit={handleLogin}
-            isLoading={authLoading}
-            error={authError}
-            showSignUpOption={false}
-          />
+          {!showSignUp ? (
+            <LoginForm 
+              onSubmit={handleLogin}
+              onSwitchToSignUp={() => setShowSignUp(true)}
+              isLoading={authLoading}
+              error={authError}
+              showSignUpOption={true}
+            />
+          ) : (
+            <SignUpForm 
+              onSwitchToSignIn={() => setShowSignUp(false)}
+              onSignUpSuccess={(user) => {
+                setCurrentUser(user)
+                setIsAuthenticated(true)
+              }}
+            />
+          )}
 
           {/* Lailix Logo and Credit */}
           <div className="text-center pt-8 border-t border-gray-200">
@@ -1212,7 +1231,7 @@ function App() {
               <img 
                 src="/meteomatics_logo.png" 
                 alt="Meteomatics" 
-                className="h-10 w-auto"
+                className="h-20 w-auto"
               />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">MetX Prompting Tool</h1>
@@ -1245,6 +1264,21 @@ function App() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   <span>Generate</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setCurrentView('generations')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  currentView === 'generations'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <span>All Generations</span>
                 </div>
               </button>
               <button
@@ -1380,6 +1414,11 @@ function App() {
                 </div>
               )}
             </>
+          )}
+
+          {/* Generations View */}
+          {currentView === 'generations' && (
+            <GenerationsView currentUser={currentUser} />
           )}
 
           {/* Prompts View */}

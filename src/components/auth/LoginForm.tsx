@@ -89,14 +89,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             Email
           </label>
           <input
             id="email"
+            name="email"
             type="email"
+            autoComplete="email"
+            placeholder="demo.meteomatics@gmail.com"
             value={formData.email}
             onChange={handleInputChange('email')}
             className={cn(
@@ -116,7 +119,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </label>
           <input
             id="password"
+            name="password"
             type="password"
+            autoComplete="current-password"
             value={formData.password}
             onChange={handleInputChange('password')}
             className={cn(
