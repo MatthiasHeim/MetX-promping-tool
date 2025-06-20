@@ -3,9 +3,10 @@ import { cn } from '@/lib/utils'
 
 interface LoginFormProps {
   onSubmit: (data: { email: string; password: string }) => void
-  onSwitchToSignUp: () => void
+  onSwitchToSignUp?: () => void
   isLoading: boolean
   error: string | null
+  showSignUpOption?: boolean
 }
 
 interface FormErrors {
@@ -18,6 +19,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignUp,
   isLoading,
   error,
+  showSignUpOption = false,
 }) => {
   const [formData, setFormData] = useState({
     email: '',
@@ -73,8 +75,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   }
 
   return (
-    <div className="card max-w-md mx-auto">
-      <div className="mb-6">
+    <div className="bg-white shadow-xl rounded-lg px-6 py-8 max-w-md mx-auto">
+      <div className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign In</h1>
         <p className="text-gray-600">
           Access the MetX prompting tool
@@ -140,18 +142,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </button>
       </form>
 
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <button
-            onClick={onSwitchToSignUp}
-            className="text-blue-600 hover:underline font-medium"
-            disabled={isLoading}
-          >
-            Sign up
-          </button>
-        </p>
-      </div>
+      {showSignUpOption && (
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <button
+              onClick={onSwitchToSignUp}
+              className="text-blue-600 hover:underline font-medium"
+              disabled={isLoading}
+            >
+              Sign up
+            </button>
+          </p>
+        </div>
+      )}
     </div>
   )
 } 

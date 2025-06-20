@@ -42,7 +42,6 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [showSignUp, setShowSignUp] = useState(false)
 
   // Form state for prompt editor
   const [promptForm, setPromptForm] = useState({
@@ -142,29 +141,7 @@ function App() {
     }
   }
 
-  const handleSignUp = async (signUpData: { email: string; password: string }) => {
-    setAuthLoading(true)
-    setAuthError(null)
-    
-    try {
-      const result = await AuthService.signUp(signUpData.email, signUpData.password)
-      
-      if (result.error) {
-        setAuthError(result.error.message)
-        return
-      }
-      
-      if (result.user) {
-        setCurrentUser(result.user)
-        setIsAuthenticated(true)
-      }
-    } catch (error) {
-      console.error('Sign up error:', error)
-      setAuthError('An unexpected error occurred')
-    } finally {
-      setAuthLoading(false)
-    }
-  }
+
 
   // Helper function to get coordinates for different locations
   const getLocationCoordinates = (userInput: string) => {
@@ -1174,94 +1151,52 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
+          {/* Meteomatics Logo */}
           <div className="text-center">
+            <img 
+              src="/meteomatics_logo.png" 
+              alt="Meteomatics" 
+              className="mx-auto h-16 w-auto mb-6"
+            />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">MetX Prompting Tool</h1>
-            <p className="text-gray-600">AI-powered dashboard generation for Meteomatics</p>
+            <p className="text-gray-600">AI-powered dashboard generation</p>
           </div>
-                     {!showSignUp ? (
-             <LoginForm 
-               onSubmit={handleLogin}
-               onSwitchToSignUp={() => setShowSignUp(true)}
-               isLoading={authLoading}
-               error={authError}
-             />
-           ) : (
-             <div className="card max-w-md mx-auto">
-               <div className="mb-6">
-                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
-                 <p className="text-gray-600">
-                   Create a new account for MetX
-                 </p>
-               </div>
 
-               {authError && (
-                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                   <p className="text-red-600 text-sm">{authError}</p>
-                 </div>
-               )}
+          <LoginForm 
+            onSubmit={handleLogin}
+            isLoading={authLoading}
+            error={authError}
+            showSignUpOption={false}
+          />
 
-               <form onSubmit={(e) => {
-                 e.preventDefault()
-                 const formData = new FormData(e.target as HTMLFormElement)
-                 handleSignUp({
-                   email: formData.get('email') as string,
-                   password: formData.get('password') as string
-                 })
-               }} className="space-y-4">
-                 <div>
-                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                     Email
-                   </label>
-                   <input
-                     id="email"
-                     name="email"
-                     type="email"
-                     required
-                     className="input-field"
-                     disabled={authLoading}
-                   />
-                 </div>
-
-                 <div>
-                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                     Password
-                   </label>
-                   <input
-                     id="password"
-                     name="password"
-                     type="password"
-                     required
-                     minLength={6}
-                     className="input-field"
-                     disabled={authLoading}
-                   />
-                 </div>
-
-                 <button
-                   type="submit"
-                   disabled={authLoading}
-                   className="w-full btn-primary"
-                 >
-                   {authLoading ? 'Creating Account...' : 'Create Account'}
-                 </button>
-               </form>
-
-               <div className="mt-6 text-center">
-                 <p className="text-sm text-gray-600">
-                   Already have an account?{' '}
-                   <button
-                     onClick={() => setShowSignUp(false)}
-                     className="text-blue-600 hover:underline font-medium"
-                     disabled={authLoading}
-                   >
-                     Sign in
-                   </button>
-                 </p>
-               </div>
-             </div>
-           )}
+          {/* Lailix Logo and Credit */}
+          <div className="text-center pt-8 border-t border-gray-200">
+            <p className="text-sm text-gray-500 mb-4">Developed by</p>
+            <a 
+              href="https://lailix.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-block hover:opacity-80 transition-opacity"
+            >
+              <img 
+                src="/lailix_logo.png" 
+                alt="Lailix - AI Experts" 
+                className="mx-auto h-8 w-auto"
+              />
+            </a>
+            <p className="text-xs text-gray-400 mt-2">
+              <a 
+                href="https://lailix.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-blue-600 transition-colors"
+              >
+                lailix.com
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -1273,9 +1208,16 @@ function App() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">MetX Prompting Tool</h1>
-              <p className="text-sm text-gray-600 mt-1">Generate dashboard configurations with AI</p>
+            <div className="flex items-center space-x-4">
+              <img 
+                src="/meteomatics_logo.png" 
+                alt="Meteomatics" 
+                className="h-10 w-auto"
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">MetX Prompting Tool</h1>
+                <p className="text-sm text-gray-600 mt-1">Generate dashboard configurations with AI</p>
+              </div>
             </div>
             <button
               onClick={handleLogout}
