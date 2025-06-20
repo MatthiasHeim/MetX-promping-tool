@@ -12,6 +12,8 @@ export interface Database {
           use_placeholder: boolean
           is_default: boolean
           version: number
+          current_version: number
+          is_active: boolean
           created_by: string | null
           created_at: string
           updated_at: string
@@ -26,6 +28,8 @@ export interface Database {
           use_placeholder?: boolean
           is_default?: boolean
           version?: number
+          current_version?: number
+          is_active?: boolean
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -40,8 +44,53 @@ export interface Database {
           use_placeholder?: boolean
           is_default?: boolean
           version?: number
+          current_version?: number
+          is_active?: boolean
           created_by?: string | null
           updated_at?: string
+        }
+      }
+      prompt_versions: {
+        Row: {
+          id: string
+          prompt_id: string
+          version_number: number
+          name: string
+          description: string | null
+          template_text: string
+          json_prefix: string | null
+          json_suffix: string | null
+          use_placeholder: boolean
+          created_by: string | null
+          created_at: string
+          is_active: boolean
+        }
+        Insert: {
+          id?: string
+          prompt_id: string
+          version_number: number
+          name: string
+          description?: string | null
+          template_text: string
+          json_prefix?: string | null
+          json_suffix?: string | null
+          use_placeholder?: boolean
+          created_by?: string | null
+          created_at?: string
+          is_active?: boolean
+        }
+        Update: {
+          id?: string
+          prompt_id?: string
+          version_number?: number
+          name?: string
+          description?: string | null
+          template_text?: string
+          json_prefix?: string | null
+          json_suffix?: string | null
+          use_placeholder?: boolean
+          created_by?: string | null
+          is_active?: boolean
         }
       }
       models: {
@@ -208,6 +257,10 @@ export interface Database {
 export type Prompt = Database['public']['Tables']['prompts']['Row']
 export type PromptInsert = Database['public']['Tables']['prompts']['Insert']
 export type PromptUpdate = Database['public']['Tables']['prompts']['Update']
+
+export type PromptVersion = Database['public']['Tables']['prompt_versions']['Row']
+export type PromptVersionInsert = Database['public']['Tables']['prompt_versions']['Insert']
+export type PromptVersionUpdate = Database['public']['Tables']['prompt_versions']['Update']
 
 export type Model = Database['public']['Tables']['models']['Row']
 export type ModelInsert = Database['public']['Tables']['models']['Insert']

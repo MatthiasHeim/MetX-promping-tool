@@ -213,4 +213,21 @@ export class AuthService {
       }
     })
   }
+
+  /**
+   * Get user information by ID (for displaying in generations)
+   */
+  static async getUserById(userId: string): Promise<{ email: string } | null> {
+    try {
+      // Since we can't directly query auth.users from the client,
+      // we'll create a simple mapping. In a real app, you'd have a public users table
+      // For now, we'll return a placeholder email format
+      return {
+        email: `user-${userId.slice(0, 8)}@metx.app`
+      }
+    } catch (error) {
+      console.error('Error getting user by ID:', error)
+      return null
+    }
+  }
 } 

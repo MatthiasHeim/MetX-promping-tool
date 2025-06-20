@@ -233,6 +233,40 @@ export class GenerationResultService {
   }
 
   /**
+   * Get all generation results (shared across all users)
+   */
+  static async getAllGenerationResults(
+    limit?: number,
+    offset?: number
+  ): Promise<GenerationResult[]> {
+    try {
+      let query = supabase
+        .from('generation_results')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (limit) {
+        query = query.limit(limit)
+      }
+
+      if (offset) {
+        query = query.range(offset, offset + (limit || 10) - 1)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new Error(`Failed to fetch generation results: ${error.message}`)
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error fetching generation results:', error)
+      throw error
+    }
+  }
+
+  /**
    * Get a specific generation result by ID
    */
   static async getGenerationResultById(

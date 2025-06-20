@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase'
-import type { Prompt, CreatePromptRequest, UpdatePromptRequest } from '../../types/database'
+import type { Prompt, CreatePromptRequest, UpdatePromptRequest, PromptVersion } from '../../types/database'
 
 export class PromptService {
   /**
@@ -250,6 +250,141 @@ export class PromptService {
       return data
     } catch (error) {
       console.error('Error in unsetPromptAsDefault:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get all versions of a prompt
+   */
+  static async getPromptVersions(promptId: string): Promise<PromptVersion[]> {
+    try {
+      const { data, error } = await supabase
+        .from('prompt_versions')
+        .select('*')
+        .eq('prompt_id', promptId)
+        .order('version_number', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching prompt versions:', error)
+        throw new Error(`Failed to fetch prompt versions: ${error.message}`)
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error in getPromptVersions:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get a specific version of a prompt
+   */
+  static async getPromptVersion(promptId: string, versionNumber: number): Promise<PromptVersion | null> {
+    try {
+      const { data, error } = await supabase
+        .from('prompt_versions')
+        .select('*')
+        .eq('prompt_id', promptId)
+        .eq('version_number', versionNumber)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null // Not found
+        }
+        console.error('Error fetching prompt version:', error)
+        throw new Error(`Failed to fetch prompt version: ${error.message}`)
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error in getPromptVersion:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Rollback a prompt to a specific version
+   */
+  static async rollbackPromptToVersion(promptId: string, versionNumber: number): Promise<Prompt> {
+    try {
+      console.log(`Rolling back prompt ${promptId} to version ${versionNumber}`)
+      
+      // Call the PostgreSQL function to rollback
+      const { data, error } = await supabase.rpc('rollback_prompt_to_version', {
+        prompt_id_param: promptId,
+        version_number_param: versionNumber
+      })
+
+      if (error) {
+        console.error('Error rolling back prompt:', error)
+        throw new Error(`Failed to rollback prompt: ${error.message}`)
+      }
+
+      // Fetch the updated prompt
+      const updatedPrompt = await this.fetchPromptById(promptId)
+      if (!updatedPrompt) {
+        throw new Error('Failed to fetch updated prompt after rollback')
+      }
+
+      console.log(`Successfully rolled back prompt to version ${versionNumber}`)
+      return updatedPrompt
+    } catch (error) {
+      console.error('Error in rollbackPromptToVersion:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get the current active version number for a prompt
+   */
+  static async getCurrentVersion(promptId: string): Promise<number> {
+    try {
+      const { data, error } = await supabase
+        .from('prompt_versions')
+        .select('version_number')
+        .eq('prompt_id', promptId)
+        .eq('is_active', true)
+        .single()
+
+      if (error) {
+        console.error('Error fetching current version:', error)
+        throw new Error(`Failed to fetch current version: ${error.message}`)
+      }
+
+      return data.version_number
+    } catch (error) {
+      console.error('Error in getCurrentVersion:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get prompts with their version information
+   */
+  static async fetchPromptsWithVersions(): Promise<Prompt[]> {
+    try {
+      const { data, error } = await supabase
+        .from('prompts')
+        .select(`
+          *,
+          prompt_versions!inner(
+            version_number,
+            is_active
+          )
+        `)
+        .eq('prompt_versions.is_active', true)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching prompts with versions:', error)
+        throw new Error(`Failed to fetch prompts with versions: ${error.message}`)
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error in fetchPromptsWithVersions:', error)
       throw error
     }
   }

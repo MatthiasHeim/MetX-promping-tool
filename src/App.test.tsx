@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 
@@ -93,14 +93,14 @@ vi.mock('./services/inputs/UserInputService', () => ({
 
 vi.mock('./services/generation/GenerationResultService', () => ({
   GenerationResultService: {
-    createGenerationResults: vi.fn((results) => Promise.resolve(
+    createGenerationResults: vi.fn((results: any[]) => Promise.resolve(
       results.map((result: any, index: number) => ({
         id: `550e8400-e29b-41d4-a716-44665544000${index + 2}`,
         ...result,
         created_at: '2024-01-01T00:00:00Z'
       }))
     )),
-    updateGenerationResult: vi.fn((id, updates) => Promise.resolve({
+    updateGenerationResult: vi.fn((id: string, updates: any) => Promise.resolve({
       id,
       ...updates
     }))

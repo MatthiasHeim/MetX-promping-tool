@@ -5,12 +5,13 @@ import { GenerationForm } from './components/generation/GenerationForm'
 import { GenerationsView } from './components/generation/GenerationsView'
 import { EvaluationDisplay } from './components/evaluation/EvaluationDisplay'
 import { AuthService } from './services/auth/AuthService'
-import { EvaluationService } from './services/evaluation/EvaluationService'
+
 import { GenerationService } from './services/generation/GenerationService'
 import { GenerationResultService } from './services/generation/GenerationResultService'
 import { UserInputService } from './services/inputs/UserInputService'
 import { PromptService } from './services/prompts/PromptService'
 import { ModelService } from './services/models/ModelService'
+import { PromptVersionHistory } from './components/generation/PromptVersionHistory'
 import type { Model, Prompt } from './types/database'
 import type { EvaluationResult } from './services/evaluation/EvaluationService'
 
@@ -45,6 +46,12 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null)
   const [showSignUp, setShowSignUp] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // Version history modal state
+  const [versionHistoryModal, setVersionHistoryModal] = useState<{
+    isOpen: boolean
+    prompt: Prompt | null
+  }>({ isOpen: false, prompt: null })
 
   // Form state for prompt editor
   const [promptForm, setPromptForm] = useState({
@@ -847,7 +854,7 @@ function App() {
     
     // Check for required fields
     if (!promptForm.name.trim()) {
-      setPromptValidation(prev => ({
+      setPromptValidation((prev: { errors: string[], warnings: string[] }) => ({
         ...prev,
         errors: [...prev.errors, 'Prompt name is required']
       }))
@@ -888,7 +895,7 @@ function App() {
       setCurrentView('prompts')
     } catch (error) {
       console.error('Error saving prompt:', error)
-      setPromptValidation(prev => ({
+      setPromptValidation((prev: { errors: string[], warnings: string[] }) => ({
         ...prev,
         errors: [...prev.errors, 'Failed to save prompt: ' + (error as Error).message]
       }))
@@ -898,6 +905,22 @@ function App() {
   const handleCancelEdit = () => {
     setEditingPrompt(null)
     setCurrentView('prompts')
+  }
+
+  const handleViewVersionHistory = (prompt: Prompt) => {
+    setVersionHistoryModal({ isOpen: true, prompt })
+  }
+
+  const handleVersionRollback = (updatedPrompt: Prompt) => {
+    // Reload prompts to reflect the changes
+    loadPrompts()
+    // If we're currently editing this prompt, update the form with rolled back data
+    if (editingPrompt && editingPrompt.id === updatedPrompt.id) {
+      setEditingPrompt(updatedPrompt)
+      initializePromptForm(updatedPrompt)
+    }
+    // Close the version history modal
+    setVersionHistoryModal({ isOpen: false, prompt: null })
   }
 
   // Rating handlers
@@ -1489,6 +1512,16 @@ function App() {
                           Edit
                         </button>
                         <button
+                          onClick={() => handleViewVersionHistory(prompt)}
+                          className="flex items-center space-x-1 px-3 py-1 text-sm text-blue-600 border border-blue-300 rounded hover:bg-blue-50"
+                          title="View version history"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>History</span>
+                        </button>
+                        <button
                           onClick={() => handleDeletePrompt(prompt)}
                           className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded hover:bg-red-50"
                         >
@@ -1547,9 +1580,28 @@ function App() {
               )}
 
               <div className="card">
-                <h2 className="text-xl font-semibold mb-6">
-                  {editingPrompt ? 'Edit Prompt' : 'Create New Prompt'}
-                </h2>
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-xl font-semibold">
+                    {editingPrompt ? 'Edit Prompt' : 'Create New Prompt'}
+                    {editingPrompt && (
+                      <span className="ml-2 text-sm text-gray-500 font-normal">
+                        v{editingPrompt.current_version || editingPrompt.version}
+                      </span>
+                    )}
+                  </h2>
+                  {editingPrompt && (
+                    <button
+                      onClick={() => handleViewVersionHistory(editingPrompt)}
+                      className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      title="View version history"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Version History</span>
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1757,6 +1809,16 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Version History Modal */}
+      {versionHistoryModal.isOpen && versionHistoryModal.prompt && (
+        <PromptVersionHistory
+          prompt={versionHistoryModal.prompt}
+          isOpen={versionHistoryModal.isOpen}
+          onClose={() => setVersionHistoryModal({ isOpen: false, prompt: null })}
+          onRollback={handleVersionRollback}
+        />
       )}
     </div>
   )

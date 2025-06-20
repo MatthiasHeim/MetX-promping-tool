@@ -3,12 +3,15 @@ import { GenerationResultService } from '../../services/generation/GenerationRes
 import { PromptService } from '../../services/prompts/PromptService'
 import { ModelService } from '../../services/models/ModelService'
 import { UserInputService } from '../../services/inputs/UserInputService'
+import { AuthService } from '../../services/auth/AuthService'
+import { PromptVersionHistory } from './PromptVersionHistory'
 import type { GenerationResult, Prompt, Model, UserInput } from '../../types/database'
 
 interface EnrichedGenerationResult extends GenerationResult {
   prompt?: Prompt | null
   model?: Model
   user_input?: UserInput | null
+  user?: { email: string } | null
 }
 
 interface GenerationsViewProps {
@@ -23,6 +26,7 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
   
   // Filter and sort state
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
+  const [selectedPromptVersion, setSelectedPromptVersion] = useState<string>('')
   const [selectedModelId, setSelectedModelId] = useState<string>('')
   const [sortBy, setSortBy] = useState<'created_at' | 'manual_score' | 'overall_score'>('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -33,6 +37,12 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
   
   // Modal state for viewing prompts
   const [promptModal, setPromptModal] = useState<{
+    isOpen: boolean
+    prompt: Prompt | null
+  }>({ isOpen: false, prompt: null })
+
+  // Modal state for version history
+  const [versionHistoryModal, setVersionHistoryModal] = useState<{
     isOpen: boolean
     prompt: Prompt | null
   }>({ isOpen: false, prompt: null })
@@ -51,23 +61,22 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
   })
 
   useEffect(() => {
-    if (currentUser) {
-      loadData()
-    }
-  }, [currentUser])
+    // Load data regardless of current user since we want to show all generations
+    loadData()
+  }, [])
 
   useEffect(() => {
     filterAndSortGenerations()
-  }, [generations, selectedPromptId, selectedModelId, sortBy, sortOrder])
+  }, [generations, selectedPromptId, selectedPromptVersion, selectedModelId, sortBy, sortOrder])
 
   const loadData = async () => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Load all data in parallel
+      // Load all data in parallel - now getting ALL generations, not user-specific
       const [genResults, promptsData, modelsData] = await Promise.all([
-        GenerationResultService.getGenerationResultsByUser(currentUser.id),
+        GenerationResultService.getAllGenerationResults(),
         PromptService.fetchPrompts(),
         ModelService.fetchModels()
       ])
@@ -75,27 +84,30 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
       setPrompts(promptsData)
       setModels(modelsData)
 
-      // Enrich generation results with related data
+      // Enrich generation results with related data including user information
       const enrichedResults = await Promise.all(
         genResults.map(async (result) => {
           try {
-            const [prompt, model, userInput] = await Promise.all([
+            const [prompt, model, userInput, user] = await Promise.all([
               PromptService.fetchPromptById(result.prompt_id),
               modelsData.find(m => m.id === result.model_id),
-              UserInputService.getUserInputById(result.user_input_id)
+              UserInputService.getUserInputById(result.user_input_id),
+              AuthService.getUserById(result.user_id)
             ])
 
             return {
               ...result,
               prompt,
               model,
-              user_input: userInput
+              user_input: userInput,
+              user
             }
           } catch (err) {
             console.error('Error enriching result:', err)
             return {
               ...result,
-              model: modelsData.find(m => m.id === result.model_id)
+              model: modelsData.find(m => m.id === result.model_id),
+              user: null
             }
           }
         })
@@ -116,6 +128,9 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
     // Apply filters
     if (selectedPromptId) {
       filtered = filtered.filter(gen => gen.prompt_id === selectedPromptId)
+    }
+    if (selectedPromptVersion) {
+      filtered = filtered.filter(gen => gen.prompt?.version.toString() === selectedPromptVersion)
     }
     if (selectedModelId) {
       filtered = filtered.filter(gen => gen.model_id === selectedModelId)
@@ -154,6 +169,17 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
 
   const handleViewPrompt = (prompt: Prompt) => {
     setPromptModal({ isOpen: true, prompt })
+  }
+
+  const handleViewVersionHistory = (prompt: Prompt) => {
+    setVersionHistoryModal({ isOpen: true, prompt })
+  }
+
+  const handleVersionRollback = (updatedPrompt: Prompt) => {
+    // Reload data to reflect the changes
+    loadData()
+    // Close the version history modal
+    setVersionHistoryModal({ isOpen: false, prompt: null })
   }
 
   const formatDate = (dateString: string) => {
@@ -459,7 +485,7 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
       <div className="bg-white p-4 rounded-lg shadow-sm border space-y-4">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Filters & Sorting</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Prompt Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -467,7 +493,10 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
             </label>
             <select
               value={selectedPromptId}
-              onChange={(e) => setSelectedPromptId(e.target.value)}
+              onChange={(e) => {
+                setSelectedPromptId(e.target.value)
+                setSelectedPromptVersion('') // Reset version filter when prompt changes
+              }}
               className="input-field"
             >
               <option value="">All Prompts</option>
@@ -476,6 +505,35 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
                   {prompt.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Prompt Version Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Version
+            </label>
+            <select
+              value={selectedPromptVersion}
+              onChange={(e) => setSelectedPromptVersion(e.target.value)}
+              className="input-field"
+              disabled={!selectedPromptId}
+            >
+              <option value="">All Versions</option>
+              {selectedPromptId && 
+                [...new Set(
+                  generations
+                    .filter(gen => gen.prompt_id === selectedPromptId)
+                    .map(gen => gen.prompt?.version)
+                    .filter(version => version !== undefined)
+                )]
+                .sort((a, b) => (b || 0) - (a || 0))
+                .map(version => (
+                  <option key={version} value={version?.toString()}>
+                    Version {version}
+                  </option>
+                ))
+              }
             </select>
           </div>
 
@@ -531,11 +589,12 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
         </div>
 
         {/* Clear Filters */}
-        {(selectedPromptId || selectedModelId) && (
+        {(selectedPromptId || selectedPromptVersion || selectedModelId) && (
           <div className="pt-2">
             <button
               onClick={() => {
                 setSelectedPromptId('')
+                setSelectedPromptVersion('')
                 setSelectedModelId('')
               }}
               className="text-sm text-blue-600 hover:text-blue-800"
@@ -571,9 +630,13 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
                     </p>
                   </div>
                   
-                  {/* Date */}
-                  <div className="text-xs text-gray-500">
-                    {formatDate(result.created_at)}
+                  {/* Date and User */}
+                  <div className="text-xs text-gray-500 text-right">
+                    <div>{formatDate(result.created_at)}</div>
+                    <div className="mt-1">
+                      <span className="font-medium">Created by:</span>{' '}
+                      {result.user?.email || 'Unknown User'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -591,13 +654,31 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
                 {/* Prompt */}
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Prompt:</span>
-                  <button
-                    onClick={() => result.prompt && handleViewPrompt(result.prompt)}
-                    className="text-sm text-blue-600 hover:text-blue-800 underline"
-                    disabled={!result.prompt}
-                  >
-                    {result.prompt?.name || 'View Prompt'}
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => result.prompt && handleViewPrompt(result.prompt)}
+                      className="text-sm text-blue-600 hover:text-blue-800 underline"
+                      disabled={!result.prompt}
+                    >
+                      {result.prompt?.name || 'View Prompt'}
+                    </button>
+                    {result.prompt && (
+                      <span className="text-xs text-gray-500">
+                        v{result.prompt.version}
+                      </span>
+                    )}
+                    {result.prompt && (
+                      <button
+                        onClick={() => handleViewVersionHistory(result.prompt!)}
+                        className="text-xs text-gray-400 hover:text-gray-600"
+                        title="View version history"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Scores Row */}
@@ -821,6 +902,16 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
             </div>
           </div>
         </div>
+      )}
+
+      {/* Version History Modal */}
+      {versionHistoryModal.isOpen && versionHistoryModal.prompt && (
+        <PromptVersionHistory
+          prompt={versionHistoryModal.prompt}
+          isOpen={versionHistoryModal.isOpen}
+          onClose={() => setVersionHistoryModal({ isOpen: false, prompt: null })}
+          onRollback={handleVersionRollback}
+        />
       )}
     </div>
   )
