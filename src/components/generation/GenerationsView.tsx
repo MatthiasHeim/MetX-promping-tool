@@ -126,7 +126,7 @@ export const GenerationsView: React.FC = () => {
       filtered = filtered.filter(gen => gen.prompt_id === selectedPromptId)
     }
     if (selectedPromptVersion) {
-      filtered = filtered.filter(gen => gen.prompt?.version.toString() === selectedPromptVersion)
+      filtered = filtered.filter(gen => gen.prompt_version.toString() === selectedPromptVersion)
     }
     if (selectedModelId) {
       filtered = filtered.filter(gen => gen.model_id === selectedModelId)
@@ -658,11 +658,9 @@ export const GenerationsView: React.FC = () => {
                     >
                       {result.prompt?.name || 'View Prompt'}
                     </button>
-                    {result.prompt && (
-                      <span className="text-xs text-gray-500">
-                        v{result.prompt.version}
-                      </span>
-                    )}
+                    <span className="text-xs text-gray-500">
+                      v{result.prompt_version}
+                    </span>
                     {result.prompt && (
                       <button
                         onClick={() => handleViewVersionHistory(result.prompt!)}

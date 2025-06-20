@@ -143,6 +143,7 @@ export interface Database {
           id: string
           user_input_id: string
           prompt_id: string
+          prompt_version: number
           model_id: string
           user_id: string
           raw_json: any | null
@@ -172,6 +173,7 @@ export interface Database {
           id?: string
           user_input_id: string
           prompt_id: string
+          prompt_version: number
           model_id: string
           user_id: string
           raw_json?: any | null

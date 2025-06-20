@@ -297,7 +297,6 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
                 type="button"
                 onClick={() => setShowPrompt(!showPrompt)}
                 className="text-sm font-medium text-green-700 hover:text-green-800 focus:outline-none focus:underline"
-                disabled={isLoading}
               >
                 {showPrompt ? 'Hide Prompt' : 'View Full Prompt'}
               </button>

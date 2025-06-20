@@ -666,6 +666,7 @@ function App() {
         return {
           user_input_id: userInput.id,
           prompt_id: data.selectedPrompt.id,
+          prompt_version: data.selectedPrompt.version,
           model_id: result.model_id,
           user_id: userId,
           raw_json: rawLlmOutput,
