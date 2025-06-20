@@ -11,10 +11,9 @@ import { PromptService } from './services/prompts/PromptService'
 import { ModelService } from './services/models/ModelService'
 import type { Model, Prompt } from './types/database'
 import type { EvaluationResult } from './services/evaluation/EvaluationService'
-import './App.css'
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true) // Skip login for development
+  const [isAuthenticated, setIsAuthenticated] = useState(false) // Require login
   const [generationResults, setGenerationResults] = useState<any[]>([])
   const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([])
   const [currentView, setCurrentView] = useState<'generation' | 'prompts' | 'editor'>('generation')
@@ -40,6 +39,10 @@ function App() {
     warnings: string[]
   }>({ errors: [], warnings: [] })
   const [isInitializingForm, setIsInitializingForm] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [showSignUp, setShowSignUp] = useState(false)
 
   // Form state for prompt editor
   const [promptForm, setPromptForm] = useState({
@@ -51,6 +54,11 @@ function App() {
     use_placeholder: false
   })
 
+  // Check authentication status on app load
+  useEffect(() => {
+    checkAuthStatus()
+  }, [])
+
   // Load prompts and models when user is authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -58,6 +66,18 @@ function App() {
       loadModels()
     }
   }, [isAuthenticated])
+
+  const checkAuthStatus = async () => {
+    try {
+      const user = await AuthService.getCurrentUser()
+      if (user) {
+        setCurrentUser(user)
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error)
+    }
+  }
 
   // Run validation when form state changes (but not during initialization)
   useEffect(() => {
@@ -98,17 +118,52 @@ function App() {
     }
   }
 
-  const handleLogin = async (email: string, password: string) => {
-    // Simulate authentication
-    console.log('Login attempt:', { email, password })
+  const handleLogin = async (loginData: { email: string; password: string }) => {
+    setAuthLoading(true)
+    setAuthError(null)
     
-    // For demo purposes, accept any email/password
-    if (email && password) {
-      setIsAuthenticated(true)
-      return { success: true }
+    try {
+      const result = await AuthService.signIn(loginData.email, loginData.password)
+      
+      if (result.error) {
+        setAuthError(result.error.message)
+        return
+      }
+      
+      if (result.user) {
+        setCurrentUser(result.user)
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setAuthError('An unexpected error occurred')
+    } finally {
+      setAuthLoading(false)
     }
+  }
+
+  const handleSignUp = async (signUpData: { email: string; password: string }) => {
+    setAuthLoading(true)
+    setAuthError(null)
     
-    return { success: false, error: 'Please enter both email and password' }
+    try {
+      const result = await AuthService.signUp(signUpData.email, signUpData.password)
+      
+      if (result.error) {
+        setAuthError(result.error.message)
+        return
+      }
+      
+      if (result.user) {
+        setCurrentUser(result.user)
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('Sign up error:', error)
+      setAuthError('An unexpected error occurred')
+    } finally {
+      setAuthLoading(false)
+    }
   }
 
   // Helper function to get coordinates for different locations
@@ -464,11 +519,10 @@ function App() {
         data.text
       )
       
-      // Upload image if provided (for OpenAI API)
+      // Use the image URL from the uploaded user input (Supabase storage URL)
       let imageUrl: string | undefined
-      if (data.inputImage) {
-        // For now, we'll create a temporary URL - in production this would upload to storage
-        imageUrl = URL.createObjectURL(data.inputImage)
+      if (userInput.input_image_url) {
+        imageUrl = userInput.input_image_url
       }
       
       // Execute real parallel generation using OpenAI
@@ -487,6 +541,16 @@ function App() {
           try {
             // The LLM should return JSON - try to parse it first
             let contentToParse = result.content.trim()
+            
+            // Strip markdown code blocks if present (```json ... ```)
+            if (contentToParse.startsWith('```')) {
+              const lines = contentToParse.split('\n')
+              // Remove first line (```json or similar) and last line (```)
+              if (lines.length > 2 && lines[lines.length - 1].trim() === '```') {
+                contentToParse = lines.slice(1, -1).join('\n')
+                console.log('Stripped markdown code blocks from LLM response')
+              }
+            }
             
             // Debug logging to understand the content format
             console.log('Parsing content preview:', contentToParse.substring(0, 100) + '...')
@@ -547,6 +611,16 @@ function App() {
             try {
               // The content might be a raw layer object or array - try to parse it directly
               let fallbackContentToParse = result.content.trim()
+              
+              // Strip markdown code blocks if present (```json ... ```)
+              if (fallbackContentToParse.startsWith('```')) {
+                const lines = fallbackContentToParse.split('\n')
+                // Remove first line (```json or similar) and last line (```)
+                if (lines.length > 2 && lines[lines.length - 1].trim() === '```') {
+                  fallbackContentToParse = lines.slice(1, -1).join('\n')
+                  console.log('Stripped markdown code blocks from LLM response (fallback)')
+                }
+              }
               
               // Check if content looks like comma-separated JSON objects (not wrapped in array)
               // This handles cases where models return {obj1},{obj2},{obj3} instead of [{obj1},{obj2},{obj3}]
@@ -616,9 +690,12 @@ function App() {
         }
       })
       
-      // Step 3: Save generation results to database
-      const savedResults = await GenerationResultService.createGenerationResults(generationResultsForDB)
-      console.log('Saved generation results to database:', savedResults)
+      // Step 3: Save generation results to database with automatic evaluation
+      const savedResults = await GenerationResultService.createGenerationResultsWithUserInput(
+        generationResultsForDB,
+        data.text
+      )
+      console.log('Saved generation results to database with evaluation metrics:', savedResults)
       
       // Step 4: Create display objects for the UI
       const results = savedResults.map((dbResult: any) => {
@@ -642,26 +719,46 @@ function App() {
         }
       })
       
-      // Generate automatic evaluations for successful results
-      const evaluations = results
-        .filter((result: any) => result.success)
-        .map((result: any) => 
-          EvaluationService.generateOverallEvaluation({
-            model_id: result.model_id,
-            user_input: result.user_input,
-            generated_json: result.final_json,
-            cost_chf: result.cost_chf,
-            latency_ms: result.latency_ms
-          })
-        )
+      // The evaluation metrics are now stored directly in the database
+      // and included in the savedResults, so we can extract them for display
+      const evaluations = savedResults
+        .filter((dbResult: any) => dbResult.overall_score !== null)
+        .map((dbResult: any) => ({
+          overallScore: dbResult.overall_score,
+          rationale: dbResult.overall_rationale,
+          criteria: {
+            parameterCompleteness: {
+              score: dbResult.parameter_completeness_score,
+              rationale: dbResult.parameter_completeness_rationale,
+              foundParameters: [], // These would need to be stored separately if needed
+              missingParameters: []
+            },
+            structureQuality: {
+              score: dbResult.structure_quality_score,
+              rationale: dbResult.structure_quality_rationale,
+              hasValidStructure: dbResult.structure_quality_score >= 0.9,
+              requiredFields: [],
+              missingFields: []
+            },
+            layerCount: {
+              score: dbResult.layer_count_score,
+              rationale: dbResult.layer_count_rationale,
+              layerCount: dbResult.layer_count
+            },
+            costEfficiency: {
+              score: dbResult.cost_efficiency_score,
+              rationale: dbResult.cost_efficiency_rationale
+            },
+            performance: {
+              score: dbResult.performance_score,
+              rationale: dbResult.performance_rationale
+            }
+          },
+          timestamp: dbResult.evaluation_timestamp
+        }))
       
       setGenerationResults(results)
       setEvaluationResults(evaluations)
-      
-      // Clean up image URL if created
-      if (imageUrl && data.inputImage) {
-        URL.revokeObjectURL(imageUrl)
-      }
       
     } catch (error) {
       console.error('Generation failed:', error)
@@ -689,12 +786,18 @@ function App() {
     }
   }
 
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-    setGenerationResults([])
-    setEvaluationResults([])
-    setCurrentView('generation')
-    setEditingPrompt(null)
+  const handleLogout = async () => {
+    try {
+      await AuthService.signOut()
+      setIsAuthenticated(false)
+      setCurrentUser(null)
+      setGenerationResults([])
+      setEvaluationResults([])
+      setCurrentView('generation')
+      setEditingPrompt(null)
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
   }
 
   const handleEditPrompt = (prompt: Prompt) => {
@@ -1077,69 +1180,154 @@ function App() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">MetX Prompting Tool</h1>
             <p className="text-gray-600">AI-powered dashboard generation for Meteomatics</p>
           </div>
-                     <LoginForm 
-             onSubmit={async (data) => {
-               const result = await handleLogin(data.email, data.password)
-               if (!result.success) {
-                 throw new Error(result.error)
-               }
-             }}
-             onSwitchToSignUp={() => console.log('Sign up clicked')}
-             isLoading={false}
-             error={null}
-           />
+                     {!showSignUp ? (
+             <LoginForm 
+               onSubmit={handleLogin}
+               onSwitchToSignUp={() => setShowSignUp(true)}
+               isLoading={authLoading}
+               error={authError}
+             />
+           ) : (
+             <div className="card max-w-md mx-auto">
+               <div className="mb-6">
+                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
+                 <p className="text-gray-600">
+                   Create a new account for MetX
+                 </p>
+               </div>
+
+               {authError && (
+                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                   <p className="text-red-600 text-sm">{authError}</p>
+                 </div>
+               )}
+
+               <form onSubmit={(e) => {
+                 e.preventDefault()
+                 const formData = new FormData(e.target as HTMLFormElement)
+                 handleSignUp({
+                   email: formData.get('email') as string,
+                   password: formData.get('password') as string
+                 })
+               }} className="space-y-4">
+                 <div>
+                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                     Email
+                   </label>
+                   <input
+                     id="email"
+                     name="email"
+                     type="email"
+                     required
+                     className="input-field"
+                     disabled={authLoading}
+                   />
+                 </div>
+
+                 <div>
+                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                     Password
+                   </label>
+                   <input
+                     id="password"
+                     name="password"
+                     type="password"
+                     required
+                     minLength={6}
+                     className="input-field"
+                     disabled={authLoading}
+                   />
+                 </div>
+
+                 <button
+                   type="submit"
+                   disabled={authLoading}
+                   className="w-full btn-primary"
+                 >
+                   {authLoading ? 'Creating Account...' : 'Create Account'}
+                 </button>
+               </form>
+
+               <div className="mt-6 text-center">
+                 <p className="text-sm text-gray-600">
+                   Already have an account?{' '}
+                   <button
+                     onClick={() => setShowSignUp(false)}
+                     className="text-blue-600 hover:underline font-medium"
+                     disabled={authLoading}
+                   >
+                     Sign in
+                   </button>
+                 </p>
+               </div>
+             </div>
+           )}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-8">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">MetX Prompting Tool</h1>
-                <p className="text-sm text-gray-600">Generate dashboard configurations with AI</p>
-              </div>
-              <nav className="flex items-center space-x-4">
-                <button
-                  onClick={() => setCurrentView('generation')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'generation' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Generate
-                </button>
-                <button
-                  onClick={() => setCurrentView('prompts')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'prompts' || currentView === 'editor'
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Prompts
-                </button>
-              </nav>
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">MetX Prompting Tool</h1>
+              <p className="text-sm text-gray-600 mt-1">Generate dashboard configurations with AI</p>
             </div>
             <button
               onClick={handleLogout}
-              className="btn-secondary text-sm"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
             >
               Logout
             </button>
           </div>
         </div>
+        
+        {/* Modern Tab Navigation */}
+        <div className="border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex space-x-8" aria-label="Tabs">
+              <button
+                onClick={() => setCurrentView('generation')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  currentView === 'generation'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Generate</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setCurrentView('prompts')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  currentView === 'prompts' || currentView === 'editor'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Prompts</span>
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="space-y-8">
+      <main className="py-8">
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           {/* Generation View */}
           {currentView === 'generation' && (
             <>

@@ -36,6 +36,23 @@ vi.mock('../../lib/supabase', () => ({
   supabase: mockSupabase
 }))
 
+// Mock EvaluationService
+vi.mock('../evaluation/EvaluationService', () => ({
+  EvaluationService: {
+    generateOverallEvaluation: vi.fn(() => ({
+      overallScore: 0.8,
+      rationale: 'Test evaluation',
+      criteria: {
+        parameterCompleteness: { score: 0.9, rationale: 'Good parameters' },
+        structureQuality: { score: 0.8, rationale: 'Valid structure' },
+        layerCount: { score: 0.7, rationale: '2 layers found', layerCount: 2 },
+        costEfficiency: { score: 0.9, rationale: 'Cost efficient' },
+        performance: { score: 0.8, rationale: 'Good performance' }
+      }
+    }))
+  }
+}))
+
 describe('GenerationResultService', () => {
   beforeEach(() => {
     vi.clearAllMocks()

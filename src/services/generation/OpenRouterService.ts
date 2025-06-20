@@ -83,6 +83,13 @@ export class OpenRouterService {
     const client = this.getClient()
 
     try {
+      console.log(`OpenRouter request params:`, {
+        model: model.id,
+        hasImage: !!imageUrl,
+        imageUrl: imageUrl, // Debug: log the actual image URL being sent
+        hasResponseFormat: !imageUrl // Only use JSON format when no image is present
+      })
+
       // Prepare messages based on whether we have an image
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
@@ -95,20 +102,26 @@ export class OpenRouterService {
             {
               type: 'image_url',
               image_url: {
-                url: imageUrl
+                url: imageUrl,
+                detail: 'high' // Use high detail for better image analysis
               }
             }
           ] : prompt
         }
       ]
 
-      // Prepare completion parameters
+      // Prepare completion parameters - different for image vs text-only requests
       const completionParams: any = {
         model: model.id,
         messages,
-        response_format: { type: 'json_object' },
         max_tokens: 4000,
         temperature: 0.7
+      }
+
+      // Only add response_format for text-only requests
+      // Many vision models don't support structured JSON output
+      if (!imageUrl) {
+        completionParams.response_format = { type: 'json_object' }
       }
 
       const completion = await client.chat.completions.create(completionParams)

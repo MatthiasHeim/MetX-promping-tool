@@ -24,7 +24,8 @@ describe('GenerationService', () => {
         id: 'gpt-4.1',
         name: 'GPT-4.1',
         provider: 'openai',
-        price_per_1k_tokens: 0.06
+        price_per_1k_tokens: 0.06,
+        is_pinned: false
       }
 
       const estimatedTokens = 1000
@@ -38,7 +39,8 @@ describe('GenerationService', () => {
         id: 'o3',
         name: 'o3',
         provider: 'openai', 
-        price_per_1k_tokens: 0.15
+        price_per_1k_tokens: 0.15,
+        is_pinned: false
       }
 
       const estimatedTokens = 2500
@@ -52,7 +54,8 @@ describe('GenerationService', () => {
         id: 'gpt-4o',
         name: 'GPT-4o',
         provider: 'openai',
-        price_per_1k_tokens: 0.005
+        price_per_1k_tokens: 0.005,
+        is_pinned: false
       }
 
       const estimatedTokens = 5000
@@ -66,7 +69,8 @@ describe('GenerationService', () => {
         id: 'gpt-4.1',
         name: 'GPT-4.1', 
         provider: 'openai',
-        price_per_1k_tokens: 0.06
+        price_per_1k_tokens: 0.06,
+        is_pinned: false
       }
 
       const estimatedTokens = 333
@@ -131,9 +135,9 @@ describe('GenerationService', () => {
   describe('Cost Guardrails', () => {
     it('should reject generation if total cost exceeds threshold', () => {
       const models: Model[] = [
-        { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06 },
-        { id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai', price_per_1k_tokens: 0.0004 },
-        { id: 'o3', name: 'o3', provider: 'openai', price_per_1k_tokens: 0.15 }
+        { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06, is_pinned: false },
+        { id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai', price_per_1k_tokens: 0.0004, is_pinned: false },
+        { id: 'o3', name: 'o3', provider: 'openai', price_per_1k_tokens: 0.15, is_pinned: false }
       ]
 
       const estimatedTokens = 5000 // This would cost: 0.30 + 0.002 + 0.75 = 1.052 CHF
@@ -163,7 +167,7 @@ describe('GenerationService', () => {
 
     it('should check cost guardrails for complete generation including prompt template', () => {
       const models: Model[] = [
-        { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06 }
+        { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06, is_pinned: false }
       ]
       const userInput = 'temperature and precipitation data for Switzerland'
       const promptTemplate = 'Generate a comprehensive MetX dashboard based on: {{user_input}}. Include all necessary weather parameters, layers, and visualization settings for the requested region.'

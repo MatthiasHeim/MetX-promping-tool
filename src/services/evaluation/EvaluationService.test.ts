@@ -81,7 +81,7 @@ describe('EvaluationService', () => {
   })
 
   describe('evaluateJsonStructureQuality', () => {
-    it('should score high for well-structured MetX JSON', () => {
+    it('should score perfect for well-structured MetX JSON', () => {
       const generatedJson = {
         metx_dashboard: {
           version: '2.0',
@@ -96,13 +96,30 @@ describe('EvaluationService', () => {
 
       const result = EvaluationService.evaluateJsonStructureQuality(generatedJson)
 
-      expect(result.score).toBeGreaterThan(0.8)
+      expect(result.score).toBe(1.0)
       expect(result.hasValidStructure).toBe(true)
       expect(result.requiredFields).toContain('layers')
       expect(result.requiredFields).toContain('region')
+      expect(result.rationale).toContain('Valid MetX JSON structure - ready for upload')
     })
 
-    it('should score low for malformed JSON structure', () => {
+    it('should score perfect for valid MetX layer arrays', () => {
+      const generatedJson = [
+        { kind: 'BackgroundMapDescription' },
+        { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+        { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' }
+      ]
+
+      const result = EvaluationService.evaluateJsonStructureQuality(generatedJson)
+
+      expect(result.score).toBe(1.0)
+      expect(result.hasValidStructure).toBe(true)
+      expect(result.requiredFields).toContain('layers')
+      expect(result.requiredFields).toContain('region')
+      expect(result.rationale).toContain('Valid MetX JSON structure - ready for upload')
+    })
+
+    it('should score low for non-MetX JSON structure', () => {
       const generatedJson = {
         random_data: {
           some_field: 'value'
@@ -111,77 +128,144 @@ describe('EvaluationService', () => {
 
       const result = EvaluationService.evaluateJsonStructureQuality(generatedJson)
 
-      expect(result.score).toBeLessThan(0.3)
+      expect(result.score).toBe(0.5) // Valid JSON but no MetX structure and no required fields
       expect(result.hasValidStructure).toBe(false)
       expect(result.missingFields).toContain('layers')
+      expect(result.missingFields).toContain('region')
     })
 
-    it('should validate required MetX fields', () => {
-      const generatedJson = {
-        metx_dashboard: {
-          config: {
-            layers: ['temperature']
-            // Missing region, timeRange, etc.
+    it('should score 0 for invalid JSON', () => {
+      const invalidJson = undefined
+
+      const result = EvaluationService.evaluateJsonStructureQuality(invalidJson)
+
+      expect(result.score).toBe(0)
+      expect(result.hasValidStructure).toBe(false)
+      expect(result.missingFields).toContain('layers')
+      expect(result.missingFields).toContain('region')
+      expect(result.rationale).toContain('Invalid JSON structure')
+    })
+
+    it('should prioritize final_json over generated_json', () => {
+      const generatedJson = { invalid: 'structure' }
+      const finalJson = [
+        { kind: 'BackgroundMapDescription' },
+        { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' }
+      ]
+
+      const result = EvaluationService.evaluateJsonStructureQuality(generatedJson, finalJson)
+
+      expect(result.score).toBe(1.0)
+      expect(result.hasValidStructure).toBe(true)
+      expect(result.rationale).toContain('Valid MetX JSON structure - ready for upload')
+    })
+
+    it('should score perfect for complete MetX dashboard structure with tabs', () => {
+      const completeMetXJson = {
+        tabs: [
+          {
+            maps: [
+              {
+                layers: [
+                  { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+                  { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' }
+                ]
+              }
+            ]
           }
-        }
+        ]
       }
 
-      const result = EvaluationService.evaluateJsonStructureQuality(generatedJson)
+      const result = EvaluationService.evaluateJsonStructureQuality({}, completeMetXJson)
 
-      expect(result.score).toBeLessThanOrEqual(0.7)
-      expect(result.missingFields).toContain('region')
-      expect(result.rationale).toContain('missing some fields')
+      expect(result.score).toBe(1.0)
+      expect(result.hasValidStructure).toBe(true)
+      expect(result.rationale).toContain('Valid MetX JSON structure - ready for upload')
+      expect(result.missingFields).toHaveLength(0)
     })
   })
 
-  describe('evaluateRegionAccuracy', () => {
-    it('should score high when requested region matches generated region', () => {
-      const userRequest = 'Show weather data for Switzerland'
-      const generatedJson = {
-        config: {
-          region: 'Switzerland',
-          layers: ['temperature']
-        }
-      }
+  describe('evaluateLayerCount', () => {
+    it('should score 100% for 3+ layers', () => {
+      const generatedJson = [
+        { kind: 'BackgroundMapDescription' },
+        { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+        { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' },
+        { kind: 'BarbsLayerDescription', parameter_unit: 'wind_speed_10m:kn' }
+      ]
 
-      const result = EvaluationService.evaluateRegionAccuracy(userRequest, generatedJson)
+      const result = EvaluationService.evaluateLayerCount(generatedJson)
 
       expect(result.score).toBe(1.0)
-      expect(result.requestedRegion).toBe('Switzerland')
-      expect(result.generatedRegion).toBe('Switzerland')
-      expect(result.isMatch).toBe(true)
+      expect(result.layerCount).toBe(4)
+      expect(result.rationale).toContain('Excellent layer count: 4 layers')
     })
 
-    it('should score low when regions do not match', () => {
-      const userRequest = 'Show weather data for Germany'
-      const generatedJson = {
-        config: {
-          region: 'France',
-          layers: ['temperature']
-        }
-      }
+    it('should score 50% for 2 layers', () => {
+      const generatedJson = [
+        { kind: 'BackgroundMapDescription' },
+        { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' }
+      ]
 
-      const result = EvaluationService.evaluateRegionAccuracy(userRequest, generatedJson)
+      const result = EvaluationService.evaluateLayerCount(generatedJson)
+
+      expect(result.score).toBe(0.5)
+      expect(result.layerCount).toBe(2)
+      expect(result.rationale).toContain('Good layer count: 2 layers')
+    })
+
+    it('should score 0% for 1 layer', () => {
+      const generatedJson = [
+        { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' }
+      ]
+
+      const result = EvaluationService.evaluateLayerCount(generatedJson)
 
       expect(result.score).toBe(0.0)
-      expect(result.requestedRegion).toBe('Germany')
-      expect(result.generatedRegion).toBe('France')
-      expect(result.isMatch).toBe(false)
+      expect(result.layerCount).toBe(1)
+      expect(result.rationale).toContain('Poor layer count: only 1 layer')
     })
 
-    it('should handle multiple region formats', () => {
-      const userRequest = 'Weather for Zurich, Switzerland'
-      const generatedJson = {
-        config: {
-          region: 'Zurich',
-          country: 'Switzerland'
-        }
+    it('should handle complete JSON with layers array', () => {
+      const finalJson = {
+        layers: [
+          { kind: 'BackgroundMapDescription' },
+          { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+          { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' }
+        ]
       }
 
-      const result = EvaluationService.evaluateRegionAccuracy(userRequest, generatedJson)
+      const result = EvaluationService.evaluateLayerCount([], finalJson)
 
-      expect(result.score).toBeGreaterThan(0.7)
-      expect(result.isMatch).toBe(true)
+      expect(result.score).toBe(1.0)
+      expect(result.layerCount).toBe(3)
+      expect(result.rationale).toContain('Excellent layer count: 3 layers')
+    })
+
+    it('should count weather layers in MetX dashboard structure', () => {
+      const metxDashboard = {
+        tabs: [{
+          maps: [{
+            layers: [
+              { kind: 'BackgroundMapDescription' },
+              { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+              { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' },
+              { kind: 'IsoLinesLayerDescription', parameter_unit: 'pressure' }
+            ]
+          }, {
+            layers: [
+              { kind: 'BackgroundMapDescription' },
+              { kind: 'WmsLayerDescription', parameter_unit: 'wind_speed:ms' }
+            ]
+          }]
+        }]
+      }
+
+      const result = EvaluationService.evaluateLayerCount(metxDashboard)
+
+      expect(result.score).toBe(1.0)
+      expect(result.layerCount).toBe(4) // Should exclude BackgroundMapDescription layers
+      expect(result.rationale).toContain('Excellent layer count: 4 layers')
     })
   })
 
@@ -190,14 +274,16 @@ describe('EvaluationService', () => {
       const mockGenerationResult: GenerationResult = {
         model_id: 'gpt-4.1',
         user_input: 'Show temperature and precipitation for Switzerland',
-        generated_json: {
-          metx_dashboard: {
-            config: {
-              layers: ['temperature', 'precipitation'],
-              region: 'Switzerland',
-              timeRange: '24h'
-            }
-          }
+        generated_json: [
+          { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+          { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' }
+        ],
+        final_json: {
+          layers: [
+            { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' },
+            { kind: 'WmsLayerDescription', parameter_unit: 'precip:mm' }
+          ],
+          region: 'Switzerland'
         },
         cost_chf: 0.05,
         latency_ms: 2000
@@ -205,10 +291,10 @@ describe('EvaluationService', () => {
 
       const result = EvaluationService.generateOverallEvaluation(mockGenerationResult)
 
-      expect(result.overallScore).toBeGreaterThan(0.7)
+      expect(result.overallScore).toBeGreaterThanOrEqual(0.58)
       expect(result.criteria).toHaveProperty('parameterCompleteness')
       expect(result.criteria).toHaveProperty('structureQuality')
-      expect(result.criteria).toHaveProperty('regionAccuracy')
+      expect(result.criteria).toHaveProperty('layerCount')
       expect(result.rationale).toContain('evaluation based on')
     })
 
@@ -216,13 +302,14 @@ describe('EvaluationService', () => {
       const expensiveResult: GenerationResult = {
         model_id: 'o3',
         user_input: 'Simple weather request',
-        generated_json: {
-          metx_dashboard: {
-            config: {
-              layers: ['temperature'],
-              region: 'Switzerland'
-            }
-          }
+        generated_json: [
+          { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' }
+        ],
+        final_json: {
+          layers: [
+            { kind: 'WmsLayerDescription', parameter_unit: 't_2m:C' }
+          ],
+          region: 'Switzerland'
         },
         cost_chf: 0.25, // High cost
         latency_ms: 8000 // High latency
@@ -232,6 +319,7 @@ describe('EvaluationService', () => {
 
       expect(result.criteria.costEfficiency.score).toBeLessThanOrEqual(0.4)
       expect(result.criteria.performance.score).toBeLessThanOrEqual(0.6)
+      expect(result.rationale).toContain('layer count')
       expect(result.rationale).toContain('cost efficiency')
       expect(result.rationale).toContain('performance')
     })
@@ -306,20 +394,24 @@ describe('EvaluationService', () => {
   })
 
   describe('calculateCostEfficiencyScore', () => {
+    it('should score perfect for very low cost (under 1 cent)', () => {
+      const score = EvaluationService.calculateCostEfficiencyScore(0.005)
+      expect(score).toBe(1.0)
+    })
+
     it('should score high for low cost generations', () => {
       const score = EvaluationService.calculateCostEfficiencyScore(0.02)
-      expect(score).toBeGreaterThan(0.8)
+      expect(score).toBe(0.9)
     })
 
     it('should score low for high cost generations', () => {
       const score = EvaluationService.calculateCostEfficiencyScore(0.25)
-      expect(score).toBeLessThan(0.3)
+      expect(score).toBe(0.2)
     })
 
     it('should score medium for moderate cost', () => {
       const score = EvaluationService.calculateCostEfficiencyScore(0.10)
-      expect(score).toBeGreaterThan(0.4)
-      expect(score).toBeLessThanOrEqual(0.8)
+      expect(score).toBe(0.8)
     })
   })
 

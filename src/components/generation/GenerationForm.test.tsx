@@ -20,9 +20,9 @@ import { GenerationService } from '../../services/generation/GenerationService'
 
 describe('GenerationForm', () => {
   const mockModels: Model[] = [
-    { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06 },
-    { id: 'o3', name: 'o3', provider: 'openai', price_per_1k_tokens: 0.15 },
-    { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', price_per_1k_tokens: 0.005 }
+    { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', price_per_1k_tokens: 0.06, is_pinned: false },
+    { id: 'o3', name: 'o3', provider: 'openai', price_per_1k_tokens: 0.15, is_pinned: false },
+    { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', price_per_1k_tokens: 0.005, is_pinned: false }
   ]
 
   const mockPrompts: Prompt[] = [

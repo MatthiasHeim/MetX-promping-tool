@@ -13,7 +13,8 @@
 export interface GenerationResult {
   model_id: string
   user_input: string
-  generated_json: any
+  generated_json: any // Raw LLM output
+  final_json?: any // Complete JSON with prefix/suffix applied
   cost_chf: number
   latency_ms: number
 }
@@ -33,18 +34,16 @@ export interface StructureQualityResult {
   rationale: string
 }
 
-export interface RegionAccuracyResult {
+export interface LayerCountResult {
   score: number
-  requestedRegion: string | null
-  generatedRegion: string | null
-  isMatch: boolean
+  layerCount: number
   rationale: string
 }
 
 export interface EvaluationCriteria {
   parameterCompleteness: ParameterCompletenessResult
   structureQuality: StructureQualityResult
-  regionAccuracy: RegionAccuracyResult
+  layerCount: LayerCountResult
   costEfficiency: {
     score: number
     rationale: string
@@ -105,10 +104,14 @@ export class EvaluationService {
    */
   static evaluateWeatherParameterCompleteness(
     userRequest: string,
-    generatedJson: any
+    generatedJson: any,
+    finalJson?: any
   ): ParameterCompletenessResult {
     const requestedParameters = this.extractWeatherParameters(userRequest)
-    const foundParameters = this.findParametersInJson(generatedJson, requestedParameters)
+    
+    // Use complete JSON with prefix/suffix if available, otherwise fall back to raw output
+    const jsonToAnalyze = finalJson || generatedJson
+    const foundParameters = this.findParametersInJson(jsonToAnalyze, requestedParameters)
     const missingParameters = requestedParameters.filter(param => !foundParameters.includes(param))
     
     const score = requestedParameters.length > 0 
@@ -136,97 +139,147 @@ export class EvaluationService {
 
   /**
    * Evaluates the structural quality and completeness of the generated JSON
-   * according to MetX dashboard standards
+   * according to MetX dashboard standards. Focus is on uploadability rather than specific schema.
    */
-  static evaluateJsonStructureQuality(generatedJson: any): StructureQualityResult {
+  static evaluateJsonStructureQuality(generatedJson: any, finalJson?: any): StructureQualityResult {
     const requiredFields: string[] = []
     const missingFields: string[] = []
     
-    // Check for MetX-specific structure
-    const hasMetXStructure = this.hasValidMetXStructure(generatedJson)
+    // ALWAYS prioritize final_json if available (complete JSON with prefix/suffix)
+    // This is the actual JSON that will be used by MetX
+    const jsonToAnalyze = finalJson || generatedJson
+    let isUsingFinalJson = !!finalJson
     
-    // Extract all available fields from the JSON
-    const availableFields = this.extractAllFields(generatedJson)
-    
-    // Check required fields
-    for (const field of this.REQUIRED_METX_FIELDS) {
-      if (availableFields.includes(field)) {
-        requiredFields.push(field)
-      } else {
-        missingFields.push(field)
+    // Check if the JSON is valid first (basic JSON validity)
+    let isValidJson = false
+    try {
+      if (jsonToAnalyze !== null && jsonToAnalyze !== undefined) {
+        // If it's already parsed, it's valid. If it's a string, try to parse it.
+        if (typeof jsonToAnalyze === 'string') {
+          JSON.parse(jsonToAnalyze)
+        }
+        isValidJson = true
       }
+    } catch (error) {
+      isValidJson = false
+    }
+    
+    // Check for MetX-specific structure (only if JSON is valid)
+    const hasMetXStructure = isValidJson ? this.hasValidMetXStructure(jsonToAnalyze) : false
+    
+    // For uploadability check, if it's a valid MetX structure, we don't need to enforce specific fields
+    // The goal is to verify it can be uploaded, not to enforce a rigid schema
+    if (isValidJson && hasMetXStructure) {
+      // Mark as having all required fields if it's a valid MetX structure
+      requiredFields.push(...this.REQUIRED_METX_FIELDS)
+    } else if (isValidJson) {
+      // Extract all available fields from the JSON for legacy field checking
+      const availableFields = this.extractAllFields(jsonToAnalyze)
+      
+      // Check traditional required fields only for non-MetX structures
+      for (const field of this.REQUIRED_METX_FIELDS) {
+        if (availableFields.includes(field)) {
+          requiredFields.push(field)
+        } else {
+          missingFields.push(field)
+        }
+      }
+    } else {
+      // Invalid JSON - all fields are missing
+      missingFields.push(...this.REQUIRED_METX_FIELDS)
     }
 
-    // Calculate score based on structure and field completeness
+    // Calculate score based on uploadability
     let score = 0
     
-    if (hasMetXStructure) {
-      score += 0.4 // Base score for valid structure
-    }
-    
-    // Score for required fields (60% of remaining score)
-    const requiredFieldScore = this.REQUIRED_METX_FIELDS.length > 0
-      ? (requiredFields.length / this.REQUIRED_METX_FIELDS.length) * 0.6
-      : 0.6
-    score += requiredFieldScore
-
-    let rationale = ''
-    if (score >= 0.8) {
-      rationale = 'Well-structured MetX JSON with all required fields'
-    } else if (score >= 0.6) {
-      rationale = `Good structure but missing some fields: ${missingFields.join(', ')}`
-    } else if (score >= 0.4) {
-      rationale = `Valid structure but missing required fields: ${missingFields.join(', ')}`
+    if (!isValidJson) {
+      // Invalid JSON cannot be uploaded
+      score = 0
+    } else if (hasMetXStructure) {
+      // Valid MetX structure is fully uploadable
+      score = 1.0
     } else {
-      rationale = 'Invalid or poorly structured JSON for MetX dashboard'
+      // Valid JSON but unknown structure - partial score based on field completeness
+      score = 0.5 + (requiredFields.length / this.REQUIRED_METX_FIELDS.length) * 0.5
     }
 
-    return {
+    // Generate appropriate rationale
+    let rationale = ''
+    if (!isValidJson) {
+      rationale = isUsingFinalJson 
+        ? 'Invalid JSON structure - cannot be uploaded to MetX'
+        : 'Invalid JSON structure in raw LLM output'
+    } else if (hasMetXStructure) {
+      rationale = 'Valid MetX JSON structure - ready for upload'
+    } else if (score >= 0.7) {
+      rationale = `Valid JSON with most required fields${missingFields.length > 0 ? `, missing: ${missingFields.join(', ')}` : ''}`
+    } else {
+      rationale = `Valid JSON but missing required fields: ${missingFields.join(', ')}`
+    }
+
+    const result: StructureQualityResult = {
       score,
       hasValidStructure: hasMetXStructure,
       requiredFields,
       missingFields,
       rationale
     }
+    return result
   }
 
   /**
-   * Evaluates how well the generated region matches the requested region
+   * Evaluates the number of layers generated by the LLM
+   * 3+ layers = 100%, 2 layers = 50%, 1 layer = 0%
    */
-  static evaluateRegionAccuracy(userRequest: string, generatedJson: any): RegionAccuracyResult {
-    const requestedRegion = this.extractRegionFromRequest(userRequest)
-    const generatedRegion = this.extractRegionFromJson(generatedJson)
+  static evaluateLayerCount(generatedJson: any, finalJson?: any): LayerCountResult {
+    // Use complete JSON with prefix/suffix if available, otherwise fall back to raw output
+    const jsonToAnalyze = finalJson || generatedJson
     
+    let layerCount = 0
+    
+    // Try to extract layer count from different possible structures
+    if (Array.isArray(jsonToAnalyze)) {
+      // Raw array of layers
+      layerCount = jsonToAnalyze.length
+    } else if (jsonToAnalyze && jsonToAnalyze.layers && Array.isArray(jsonToAnalyze.layers)) {
+      // Complete JSON with layers array
+      layerCount = jsonToAnalyze.layers.length
+    } else if (jsonToAnalyze && typeof jsonToAnalyze === 'object') {
+      // Check if it's a MetX dashboard structure with nested layers
+      layerCount = this.countMetXLayers(jsonToAnalyze)
+      
+      // If no MetX layers found, treat as single layer object
+      if (layerCount === 0) {
+        layerCount = 1
+      }
+    }
+    
+    // Calculate score based on layer count
     let score = 0
-    let isMatch = false
-
-    if (requestedRegion && generatedRegion) {
-      isMatch = this.compareRegions(requestedRegion, generatedRegion)
-      score = isMatch ? 1.0 : 0.0
-    } else if (!requestedRegion && !generatedRegion) {
-      // No region specified in either - neutral score
-      score = 0.5
-    } else if (!requestedRegion) {
-      // No region requested but one was generated - slight positive
-      score = 0.6
+    if (layerCount >= 3) {
+      score = 1.0 // 100% for 3+ layers
+    } else if (layerCount === 2) {
+      score = 0.5 // 50% for 2 layers
+    } else if (layerCount === 1) {
+      score = 0.0 // 0% for 1 layer
     } else {
-      // Region requested but not generated - negative
-      score = 0.2
+      score = 0.0 // 0% for no layers
     }
 
-    const rationale = isMatch 
-      ? `Requested region "${requestedRegion}" matches generated region "${generatedRegion}"`
-      : requestedRegion && generatedRegion
-        ? `Region mismatch: requested "${requestedRegion}", generated "${generatedRegion}"`
-        : requestedRegion
-          ? `Region "${requestedRegion}" was requested but not found in generated JSON`
-          : 'No specific region mentioned in request'
+    let rationale = ''
+    if (layerCount >= 3) {
+      rationale = `Excellent layer count: ${layerCount} layers generated`
+    } else if (layerCount === 2) {
+      rationale = `Good layer count: ${layerCount} layers generated`
+    } else if (layerCount === 1) {
+      rationale = `Poor layer count: only ${layerCount} layer generated`
+    } else {
+      rationale = 'No layers found in generated output'
+    }
 
     return {
       score,
-      requestedRegion,
-      generatedRegion,
-      isMatch,
+      layerCount,
       rationale
     }
   }
@@ -237,16 +290,18 @@ export class EvaluationService {
   static generateOverallEvaluation(generationResult: GenerationResult): EvaluationResult {
     const parameterCompleteness = this.evaluateWeatherParameterCompleteness(
       generationResult.user_input,
-      generationResult.generated_json
+      generationResult.generated_json,
+      generationResult.final_json
     )
 
     const structureQuality = this.evaluateJsonStructureQuality(
-      generationResult.generated_json
+      generationResult.generated_json,
+      generationResult.final_json
     )
 
-    const regionAccuracy = this.evaluateRegionAccuracy(
-      generationResult.user_input,
-      generationResult.generated_json
+    const layerCount = this.evaluateLayerCount(
+      generationResult.generated_json,
+      generationResult.final_json
     )
 
     const costEfficiency = {
@@ -263,7 +318,7 @@ export class EvaluationService {
     const weights = {
       parameterCompleteness: 0.3,
       structureQuality: 0.25,
-      regionAccuracy: 0.2,
+      layerCount: 0.2,
       costEfficiency: 0.15,
       performance: 0.1
     }
@@ -271,13 +326,13 @@ export class EvaluationService {
     const overallScore = 
       parameterCompleteness.score * weights.parameterCompleteness +
       structureQuality.score * weights.structureQuality +
-      regionAccuracy.score * weights.regionAccuracy +
+      layerCount.score * weights.layerCount +
       costEfficiency.score * weights.costEfficiency +
       performance.score * weights.performance
 
     const rationale = `Overall evaluation based on: parameter completeness (${(parameterCompleteness.score * 100).toFixed(1)}%), ` +
       `structure quality (${(structureQuality.score * 100).toFixed(1)}%), ` +
-      `region accuracy (${(regionAccuracy.score * 100).toFixed(1)}%), ` +
+      `layer count (${(layerCount.score * 100).toFixed(1)}%), ` +
       `cost efficiency (${(costEfficiency.score * 100).toFixed(1)}%), ` +
       `and performance (${(performance.score * 100).toFixed(1)}%)`
 
@@ -286,7 +341,7 @@ export class EvaluationService {
       criteria: {
         parameterCompleteness,
         structureQuality,
-        regionAccuracy,
+        layerCount,
         costEfficiency,
         performance
       },
@@ -359,8 +414,10 @@ export class EvaluationService {
    * Calculates cost efficiency score (0-1) based on CHF cost
    */
   static calculateCostEfficiencyScore(costChf: number): number {
+    // Perfect score for very low cost (under 1 cent)
+    if (costChf < 0.01) return 1.0
     // Target cost: ≤ 0.10 CHF (from PRD)
-    if (costChf <= 0.05) return 1.0
+    if (costChf <= 0.05) return 0.9
     if (costChf <= 0.10) return 0.8
     if (costChf <= 0.15) return 0.6
     if (costChf <= 0.20) return 0.4
@@ -383,10 +440,79 @@ export class EvaluationService {
   // Helper methods
 
   private static hasValidMetXStructure(json: any): boolean {
-    return !!(
-      json &&
-      (json.metx_dashboard || json.aviation_dashboard || json.config || json.layers)
+    // First check if json is valid
+    if (!json || typeof json !== 'object') {
+      return false
+    }
+
+    // Check for complete MetX dashboard structure (the most important one!)
+    const hasCompleteMetXStructure = !!(
+      json.tabs && 
+      Array.isArray(json.tabs) && 
+      json.tabs.length > 0 &&
+      json.tabs.some((tab: any) => 
+        tab.maps && 
+        Array.isArray(tab.maps) && 
+        tab.maps.some((map: any) => 
+          map.layers && 
+          Array.isArray(map.layers) && 
+          map.layers.length > 0
+        )
+      )
     )
+
+    // Check for other valid MetX structures
+    const hasBasicStructure = !!(
+      json.metx_dashboard || 
+      json.aviation_dashboard || 
+      json.config || 
+      json.layers
+    )
+
+    // Also check if it's a valid array of layer objects (common structure)
+    const isValidLayerArray = Array.isArray(json) && json.length > 0 && 
+      json.every(item => 
+        item && 
+        typeof item === 'object' && 
+        (item.kind || item.type || item.parameter_unit || item.layer)
+      )
+
+    // Check if it's wrapped in a layers property
+    const hasWrappedLayers = !!(json.layers && Array.isArray(json.layers) && json.layers.length > 0)
+
+    return hasCompleteMetXStructure || hasBasicStructure || isValidLayerArray || hasWrappedLayers
+  }
+
+  /**
+   * Counts weather layers in a MetX dashboard structure
+   * Excludes background maps and other non-weather layers
+   */
+  private static countMetXLayers(json: any): number {
+    if (!json || typeof json !== 'object') {
+      return 0
+    }
+
+    let totalLayers = 0
+
+    // Check if it's a MetX dashboard structure with tabs
+    if (json.tabs && Array.isArray(json.tabs)) {
+      json.tabs.forEach((tab: any) => {
+        if (tab.maps && Array.isArray(tab.maps)) {
+          tab.maps.forEach((map: any) => {
+            if (map.layers && Array.isArray(map.layers)) {
+              map.layers.forEach((layer: any) => {
+                // Count layers that are not background maps
+                if (layer.kind && layer.kind !== 'BackgroundMapDescription') {
+                  totalLayers++
+                }
+              })
+            }
+          })
+        }
+      })
+    }
+
+    return totalLayers
   }
 
   private static extractAllFields(obj: any, prefix = ''): string[] {
@@ -408,53 +534,10 @@ export class EvaluationService {
     return [...new Set(fields)]
   }
 
-  private static extractRegionFromRequest(request: string): string | null {
-    const regionPatterns = [
-      /for\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
-      /in\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
-      /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+weather/g
-    ]
 
-    for (const pattern of regionPatterns) {
-      const match = pattern.exec(request)
-      if (match) {
-        return match[1].trim()
-      }
-    }
-
-    return null
-  }
-
-  private static extractRegionFromJson(json: any): string | null {
-    const jsonString = JSON.stringify(json)
-    const regionMatch = jsonString.match(/"region":\s*"([^"]+)"/i)
-    if (regionMatch) return regionMatch[1]
-
-    const countryMatch = jsonString.match(/"country":\s*"([^"]+)"/i)
-    if (countryMatch) return countryMatch[1]
-
-    return null
-  }
-
-  private static compareRegions(requested: string, generated: string): boolean {
-    const normalize = (str: string) => str.toLowerCase().trim()
-    
-    const normalizedRequested = normalize(requested)
-    const normalizedGenerated = normalize(generated)
-
-    // Exact match
-    if (normalizedRequested === normalizedGenerated) return true
-
-    // Check if one contains the other
-    if (normalizedRequested.includes(normalizedGenerated) || 
-        normalizedGenerated.includes(normalizedRequested)) {
-      return true
-    }
-
-    return false
-  }
 
   private static getCostEfficiencyRationale(costChf: number): string {
+    if (costChf < 0.01) return 'Perfect cost efficiency - under 1 cent'
     if (costChf <= 0.05) return 'Excellent cost efficiency'
     if (costChf <= 0.10) return 'Good cost efficiency within target'
     if (costChf <= 0.15) return 'Moderate cost, slightly above target'

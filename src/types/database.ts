@@ -50,18 +50,21 @@ export interface Database {
           name: string
           provider: string
           price_per_1k_tokens: number
+          is_pinned: boolean
         }
         Insert: {
           id: string
           name: string
           provider?: string
           price_per_1k_tokens: number
+          is_pinned?: boolean
         }
         Update: {
           id?: string
           name?: string
           provider?: string
           price_per_1k_tokens?: number
+          is_pinned?: boolean
         }
       }
       user_inputs: {
@@ -100,8 +103,20 @@ export interface Database {
           output_image_url: string | null
           manual_score: number | null
           manual_comment: string | null
-          auto_score: number | null
-          auto_rationale: string | null
+          overall_score: number | null
+          overall_rationale: string | null
+          parameter_completeness_score: number | null
+          parameter_completeness_rationale: string | null
+          structure_quality_score: number | null
+          structure_quality_rationale: string | null
+          layer_count_score: number | null
+          layer_count_rationale: string | null
+          layer_count: number | null
+          cost_efficiency_score: number | null
+          cost_efficiency_rationale: string | null
+          performance_score: number | null
+          performance_rationale: string | null
+          evaluation_timestamp: string | null
           created_at: string
         }
         Insert: {
@@ -117,8 +132,20 @@ export interface Database {
           output_image_url?: string | null
           manual_score?: number | null
           manual_comment?: string | null
-          auto_score?: number | null
-          auto_rationale?: string | null
+          overall_score?: number | null
+          overall_rationale?: string | null
+          parameter_completeness_score?: number | null
+          parameter_completeness_rationale?: string | null
+          structure_quality_score?: number | null
+          structure_quality_rationale?: string | null
+          layer_count_score?: number | null
+          layer_count_rationale?: string | null
+          layer_count?: number | null
+          cost_efficiency_score?: number | null
+          cost_efficiency_rationale?: string | null
+          performance_score?: number | null
+          performance_rationale?: string | null
+          evaluation_timestamp?: string | null
           created_at?: string
         }
         Update: {
@@ -126,8 +153,20 @@ export interface Database {
           output_image_url?: string | null
           manual_score?: number | null
           manual_comment?: string | null
-          auto_score?: number | null
-          auto_rationale?: string | null
+          overall_score?: number | null
+          overall_rationale?: string | null
+          parameter_completeness_score?: number | null
+          parameter_completeness_rationale?: string | null
+          structure_quality_score?: number | null
+          structure_quality_rationale?: string | null
+          layer_count_score?: number | null
+          layer_count_rationale?: string | null
+          layer_count?: number | null
+          cost_efficiency_score?: number | null
+          cost_efficiency_rationale?: string | null
+          performance_score?: number | null
+          performance_rationale?: string | null
+          evaluation_timestamp?: string | null
         }
       }
       audit_logs: {
@@ -329,7 +368,7 @@ export interface SearchFilters {
 }
 
 export interface SortOptions {
-  field: 'created_at' | 'cost_chf' | 'latency_ms' | 'manual_score' | 'auto_score';
+  field: 'created_at' | 'cost_chf' | 'latency_ms' | 'manual_score' | 'overall_score' | 'parameter_completeness_score' | 'structure_quality_score' | 'layer_count_score' | 'cost_efficiency_score' | 'performance_score';
   direction: 'asc' | 'desc';
 }
 

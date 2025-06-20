@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { GenerationService } from '../../services/generation/GenerationService'
+import { ModelSelection } from './ModelSelection'
 import type { Model, Prompt, GenerationProgress } from '../../types/database'
 
 interface GenerationFormProps {
@@ -169,7 +170,7 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
       await GenerationService.executeParallelGeneration(
         processedPromptText,
         selectedModels,
-        formState.inputImage ? URL.createObjectURL(formState.inputImage) : undefined,
+        undefined, // Image URL will be handled in App.tsx after upload
         (progressUpdate) => {
           setProgress(progressUpdate)
         }
@@ -196,26 +197,32 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
   const isLoading = isGenerating || isProcessingResults
 
   return (
-    <div className="card max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Generate MetX Dashboard</h2>
-        <p className="text-gray-600">
-          Describe your requirements and select models to generate JSON configurations
-        </p>
-      </div>
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Generate MetX Dashboard</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Describe your requirements and select models to generate JSON configurations
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
         {/* Text Input */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-900 mb-2">
             Describe your MetX dashboard requirements
           </label>
           <textarea
             id="description"
             value={formState.text}
             onChange={handleTextChange}
-            placeholder="e.g., Show temperature and precipitation data for Switzerland with hourly forecast"
-            className={`input-field h-32 resize-none ${formState.errors.text ? 'input-field-error' : ''}`}
+            placeholder="e.g., Show temperature and precipitation data for Switzerland with hourly forecast for the next 7 days..."
+            className={`w-full px-3 py-2 border rounded-lg resize-none h-24 text-sm ${
+              formState.errors.text 
+                ? 'border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-200' 
+                : 'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200'
+            } focus:outline-none disabled:bg-gray-50 disabled:text-gray-500`}
             disabled={isLoading}
           />
           {formState.errors.text && (
@@ -225,7 +232,7 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
 
         {/* Image Upload */}
         <div>
-          <label htmlFor="image-upload" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="image-upload" className="block text-sm font-medium text-gray-900 mb-2">
             Upload Input Image (optional)
           </label>
           <input
@@ -234,51 +241,27 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
             accept="image/*"
             onChange={handleImageUpload}
             disabled={isLoading}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-gray-300 file:text-sm file:font-medium file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 border border-gray-300 rounded-lg"
           />
           {formState.inputImage && (
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-green-600">
               Selected: {formState.inputImage.name}
             </p>
           )}
         </div>
 
         {/* Model Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Select Models
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {models.map((model) => (
-              <div key={model.id} className="border rounded-lg p-4">
-                <label htmlFor={`model-${model.id}`} className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    id={`model-${model.id}`}
-                    type="checkbox"
-                    checked={formState.selectedModelIds.includes(model.id)}
-                    onChange={() => handleModelToggle(model.id)}
-                    disabled={isLoading}
-                    className="mt-1"
-                    aria-label={model.name}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">{model.name}</div>
-                    <div className="text-sm text-gray-500">
-                      {model.price_per_1k_tokens} CHF/1k tokens
-                    </div>
-                  </div>
-                </label>
-              </div>
-            ))}
-          </div>
-          {formState.errors.models && (
-            <p className="mt-2 text-sm text-red-600">{formState.errors.models}</p>
-          )}
-        </div>
+        <ModelSelection
+          models={models}
+          selectedModelIds={formState.selectedModelIds}
+          onModelToggle={handleModelToggle}
+          isLoading={isLoading}
+          error={formState.errors.models}
+        />
 
         {/* Prompt Template Selection */}
         <div>
-          <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="prompt" className="block text-sm font-medium text-gray-900 mb-2">
             Select Prompt Template
           </label>
           <select
@@ -286,7 +269,7 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
             value={formState.selectedPromptId}
             onChange={handlePromptChange}
             disabled={isLoading || prompts.length === 0}
-            className="input-field"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-200 focus:outline-none text-sm disabled:bg-gray-50 disabled:text-gray-500"
           >
             {prompts.length === 0 ? (
               <option value="">Loading prompts...</option>
@@ -299,11 +282,9 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
             )}
           </select>
           {formState.selectedPromptId && (
-            <div className="mt-2 p-3 bg-gray-50 rounded-md">
-              <p className="text-sm text-gray-600">
-                {prompts.find(p => p.id === formState.selectedPromptId)?.description}
-              </p>
-            </div>
+            <p className="mt-2 text-sm text-gray-600">
+              {prompts.find(p => p.id === formState.selectedPromptId)?.description}
+            </p>
           )}
         </div>
 
@@ -338,13 +319,13 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
 
         {/* Cost Estimation */}
         {(formState.text || formState.selectedModelIds.length > 0) && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">Cost Estimation</h3>
-            <p className="text-sm text-blue-700">
-              Estimated cost: {costEstimation.totalCost.toFixed(4)} CHF
-            </p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-900">Estimated Cost:</span>
+              <span className="text-sm font-semibold text-green-700">{costEstimation.totalCost.toFixed(4)} CHF</span>
+            </div>
             {costEstimation.warning && (
-              <p className="text-sm text-red-600 mt-1">{costEstimation.warning}</p>
+              <p className="text-sm text-red-600 mt-2">{costEstimation.warning}</p>
             )}
           </div>
         )}
@@ -375,18 +356,33 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
         )}
 
         {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isLoading || !costEstimation.canProceed || prompts.length === 0}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              isProcessingResults ? 'Processing Results...' : 'Running...'
-            ) : 'Run'}
-          </button>
+        <div className="border-t pt-4 bg-gray-50 -mx-6 px-6 -mb-6 pb-6">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              {formState.selectedModelIds.length > 0 && (
+                <span>{formState.selectedModelIds.length} model{formState.selectedModelIds.length > 1 ? 's' : ''} selected</span>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading || !costEstimation.canProceed || prompts.length === 0}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                isLoading || !costEstimation.canProceed || prompts.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {isLoading ? (
+                <span>{isProcessingResults ? 'Processing...' : 'Generating...'}</span>
+              ) : (
+                <span>Generate Dashboard</span>
+              )}
+            </button>
+          </div>
         </div>
       </form>
+        </div>
+      </div>
     </div>
   )
 } 
