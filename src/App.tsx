@@ -44,7 +44,6 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [showSignUp, setShowSignUp] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
 
   // Version history modal state
   const [versionHistoryModal, setVersionHistoryModal] = useState<{
@@ -79,7 +78,6 @@ function App() {
     try {
       const user = await AuthService.getCurrentUser()
       if (user) {
-        setCurrentUser(user)
         setIsAuthenticated(true)
       }
     } catch (error) {
@@ -136,7 +134,6 @@ function App() {
       }
       
       if (result.user) {
-        setCurrentUser(result.user)
         setIsAuthenticated(true)
       }
     } catch (error) {
@@ -778,7 +775,7 @@ function App() {
     try {
       await AuthService.signOut()
       setIsAuthenticated(false)
-      setCurrentUser(null)
+  
       setGenerationResults([])
       setEvaluationResults([])
       setCurrentView('generation')
@@ -1203,7 +1200,6 @@ function App() {
             <SignUpForm 
               onSwitchToSignIn={() => setShowSignUp(false)}
               onSignUpSuccess={(user) => {
-                setCurrentUser(user)
                 setIsAuthenticated(true)
               }}
             />

@@ -311,7 +311,7 @@ export class PromptService {
       console.log(`Rolling back prompt ${promptId} to version ${versionNumber}`)
       
       // Call the PostgreSQL function to rollback
-      const { data, error } = await supabase.rpc('rollback_prompt_to_version', {
+      const { error } = await supabase.rpc('rollback_prompt_to_version', {
         prompt_id_param: promptId,
         version_number_param: versionNumber
       })
