@@ -14,11 +14,7 @@ interface EnrichedGenerationResult extends GenerationResult {
   user?: { email: string } | null
 }
 
-interface GenerationsViewProps {
-  currentUser: any
-}
-
-export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser }) => {
+export const GenerationsView: React.FC = () => {
   const [generations, setGenerations] = useState<EnrichedGenerationResult[]>([])
   const [filteredGenerations, setFilteredGenerations] = useState<EnrichedGenerationResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -175,7 +171,7 @@ export const GenerationsView: React.FC<GenerationsViewProps> = ({ currentUser })
     setVersionHistoryModal({ isOpen: true, prompt })
   }
 
-  const handleVersionRollback = (updatedPrompt: Prompt) => {
+  const handleVersionRollback = () => {
     // Reload data to reflect the changes
     loadData()
     // Close the version history modal

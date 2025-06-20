@@ -201,7 +201,7 @@ export class AuthService {
    * Subscribe to authentication state changes
    */
   static onAuthStateChange(callback: (user: AuthUser | null) => void) {
-    return supabase.auth.onAuthStateChange((event, session) => {
+    return supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         callback({
           id: session.user.id,

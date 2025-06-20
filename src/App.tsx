@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { LoginForm } from './components/auth/LoginForm'
 import { SignUpForm } from './components/auth/SignUpForm'
 import { GenerationForm } from './components/generation/GenerationForm'
@@ -36,7 +36,6 @@ function App() {
   const [prompts, setPrompts] = useState<Prompt[]>([])
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false)
   const [models, setModels] = useState<Model[]>([])
-  const [isLoadingModels, setIsLoadingModels] = useState(false)
   const [promptValidation, setPromptValidation] = useState<{
     errors: string[]
     warnings: string[]
@@ -115,15 +114,12 @@ function App() {
   }
 
   const loadModels = async () => {
-    setIsLoadingModels(true)
     try {
       const fetchedModels = await ModelService.fetchModels()
       setModels(fetchedModels)
     } catch (error) {
       console.error('Error loading models:', error)
       // Keep empty array if there's an error
-    } finally {
-      setIsLoadingModels(false)
     }
   }
 
@@ -1441,7 +1437,7 @@ function App() {
 
           {/* Generations View */}
           {currentView === 'generations' && (
-            <GenerationsView currentUser={currentUser} />
+            <GenerationsView />
           )}
 
           {/* Prompts View */}

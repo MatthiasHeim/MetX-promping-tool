@@ -158,9 +158,8 @@ export class PromptService {
         console.warn('Multiple rows updated:', allData.length)
       }
 
-      const data = allData[0]
-      console.log('Prompt updated successfully:', data.name)
-      return data
+      console.log('Prompt updated successfully:', allData[0].name)
+      return allData[0]
     } catch (error) {
       console.error('Error in updatePrompt:', error)
       throw error

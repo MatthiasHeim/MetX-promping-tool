@@ -87,10 +87,7 @@ export const PromptVersionHistory: React.FC<PromptVersionHistoryProps> = ({
     })
   }
 
-  const truncateText = (text: string, maxLength: number = 100) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + '...'
-  }
+
 
   if (!isOpen) return null
 
