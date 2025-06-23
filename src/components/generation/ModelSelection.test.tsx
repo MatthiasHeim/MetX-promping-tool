@@ -30,8 +30,8 @@ describe('ModelSelection', () => {
     )
 
     // Pinned models should be visible by default
-    expect(screen.getByLabelText('Gemini 2.5 Flash')).toBeInTheDocument()
-    expect(screen.getByLabelText('Gemini 2.5 Pro')).toBeInTheDocument()
+    expect(screen.getByText('Gemini 2.5 Flash')).toBeInTheDocument()
+    expect(screen.getByText('Gemini 2.5 Pro')).toBeInTheDocument()
     expect(screen.getByText('0.000750 CHF/1k tokens')).toBeInTheDocument()
     expect(screen.getByText('0.003000 CHF/1k tokens')).toBeInTheDocument()
   })
@@ -61,9 +61,9 @@ describe('ModelSelection', () => {
     )
 
     // Additional models should not be visible initially
-    expect(screen.queryByLabelText('GPT-4.1')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('o3')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('GPT-4o')).not.toBeInTheDocument()
+    expect(screen.queryByText('GPT-4.1')).not.toBeInTheDocument()
+    expect(screen.queryByText('o3')).not.toBeInTheDocument()
+    expect(screen.queryByText('GPT-4o')).not.toBeInTheDocument()
   })
 
   it('shows additional models when button is clicked', () => {
@@ -81,9 +81,9 @@ describe('ModelSelection', () => {
     fireEvent.click(additionalModelsButton)
 
     // Additional models should now be visible
-    expect(screen.getByLabelText('GPT-4.1')).toBeInTheDocument()
-    expect(screen.getByLabelText('o3')).toBeInTheDocument()
-    expect(screen.getByLabelText('GPT-4o')).toBeInTheDocument()
+    expect(screen.getByText('GPT-4.1')).toBeInTheDocument()
+    expect(screen.getByText('o3')).toBeInTheDocument()
+    expect(screen.getByText('GPT-4o')).toBeInTheDocument()
   })
 
   it('toggles additional models visibility on button click', () => {
@@ -100,11 +100,11 @@ describe('ModelSelection', () => {
 
     // Click to show additional models
     fireEvent.click(additionalModelsButton)
-    expect(screen.getByLabelText('GPT-4.1')).toBeInTheDocument()
+    expect(screen.getByText('GPT-4.1')).toBeInTheDocument()
 
     // Click again to hide additional models
     fireEvent.click(additionalModelsButton)
-    expect(screen.queryByLabelText('GPT-4.1')).not.toBeInTheDocument()
+    expect(screen.queryByText('GPT-4.1')).not.toBeInTheDocument()
   })
 
   it('calls onModelToggle when model is selected', () => {
@@ -117,9 +117,15 @@ describe('ModelSelection', () => {
       />
     )
 
-    // Click on a pinned model
-    const geminiFlashCheckbox = screen.getByLabelText('Gemini 2.5 Flash')
-    fireEvent.click(geminiFlashCheckbox)
+    // Click on a pinned model checkbox
+    const checkboxes = screen.getAllByRole('checkbox')
+    const geminiFlashCheckbox = checkboxes.find((checkbox) => {
+      const label = checkbox.closest('label')
+      return label?.textContent?.includes('Gemini 2.5 Flash')
+    })
+    
+    expect(geminiFlashCheckbox).toBeDefined()
+    fireEvent.click(geminiFlashCheckbox!)
 
     expect(mockOnModelToggle).toHaveBeenCalledWith('google/gemini-2.5-flash')
   })
@@ -134,8 +140,16 @@ describe('ModelSelection', () => {
       />
     )
 
-    const geminiFlashCheckbox = screen.getByLabelText('Gemini 2.5 Flash') as HTMLInputElement
-    const geminiProCheckbox = screen.getByLabelText('Gemini 2.5 Pro') as HTMLInputElement
+    const checkboxes = screen.getAllByRole('checkbox')
+    const geminiFlashCheckbox = checkboxes.find((checkbox) => {
+      const label = checkbox.closest('label')
+      return label?.textContent?.includes('Gemini 2.5 Flash')
+    }) as HTMLInputElement
+    
+    const geminiProCheckbox = checkboxes.find((checkbox) => {
+      const label = checkbox.closest('label')
+      return label?.textContent?.includes('Gemini 2.5 Pro')
+    }) as HTMLInputElement
 
     expect(geminiFlashCheckbox.checked).toBe(true)
     expect(geminiProCheckbox.checked).toBe(true)
@@ -166,8 +180,16 @@ describe('ModelSelection', () => {
       />
     )
 
-    const geminiFlashCheckbox = screen.getByLabelText('Gemini 2.5 Flash') as HTMLInputElement
-    const geminiProCheckbox = screen.getByLabelText('Gemini 2.5 Pro') as HTMLInputElement
+    const checkboxes = screen.getAllByRole('checkbox')
+    const geminiFlashCheckbox = checkboxes.find((checkbox) => {
+      const label = checkbox.closest('label')
+      return label?.textContent?.includes('Gemini 2.5 Flash')
+    }) as HTMLInputElement
+    
+    const geminiProCheckbox = checkboxes.find((checkbox) => {
+      const label = checkbox.closest('label')
+      return label?.textContent?.includes('Gemini 2.5 Pro')
+    }) as HTMLInputElement
 
     expect(geminiFlashCheckbox.disabled).toBe(true)
     expect(geminiProCheckbox.disabled).toBe(true)
@@ -190,7 +212,7 @@ describe('ModelSelection', () => {
 
     // Should only show the additional models button
     expect(screen.getByText('Additional Models (2)')).toBeInTheDocument()
-    expect(screen.queryByLabelText('GPT-4.1')).not.toBeInTheDocument()
+    expect(screen.queryByText('GPT-4.1')).not.toBeInTheDocument()
   })
 
   it('handles case when no additional models exist', () => {
@@ -209,8 +231,8 @@ describe('ModelSelection', () => {
     )
 
     // Should show pinned models but no additional models button
-    expect(screen.getByLabelText('Gemini 2.5 Flash')).toBeInTheDocument()
-    expect(screen.getByLabelText('Gemini 2.5 Pro')).toBeInTheDocument()
+    expect(screen.getByText('Gemini 2.5 Flash')).toBeInTheDocument()
+    expect(screen.getByText('Gemini 2.5 Pro')).toBeInTheDocument()
     expect(screen.queryByText(/Additional Models/)).not.toBeInTheDocument()
   })
 }) 

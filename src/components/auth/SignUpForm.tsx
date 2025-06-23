@@ -86,7 +86,10 @@ export function SignUpForm({ onSwitchToSignIn, onSignUpSuccess }: SignUpFormProp
       if (result.error) {
         setSubmitError(result.error.message)
       } else if (result.user) {
-        onSignUpSuccess(result.user)
+        // Show success message and prompt for email confirmation
+        setSubmitError(null)
+        alert('Account created successfully! Please check your email and click the confirmation link before signing in.')
+        onSwitchToSignIn()
       }
     } catch (error) {
       setSubmitError('An unexpected error occurred')

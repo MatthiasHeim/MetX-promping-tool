@@ -60,11 +60,11 @@ export class AuthService {
         // Handle common Supabase auth errors
         let errorMessage = 'An error occurred during sign in'
         if (error.message.includes('Invalid login credentials') || 
-            error.message.includes('Email not confirmed') ||
             error.message.includes('Invalid email or password')) {
           errorMessage = 'Invalid email or password'
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Please check your email and confirm your account'
+        } else if (error.message.includes('Email not confirmed') || 
+                   error.message.includes('email_not_confirmed')) {
+          errorMessage = 'Please check your email and confirm your account before signing in'
         } else if (error.message.includes('Email sending has been disabled')) {
           errorMessage = 'Authentication temporarily unavailable. Please try again later.'
         }
@@ -79,6 +79,14 @@ export class AuthService {
         return {
           user: null,
           error: { message: 'Invalid email or password' }
+        }
+      }
+
+      // Additional check for email confirmation
+      if (!data.user.email_confirmed_at) {
+        return {
+          user: null,
+          error: { message: 'Please check your email and confirm your account before signing in' }
         }
       }
 
@@ -183,6 +191,12 @@ export class AuthService {
       const { data, error } = await supabase.auth.getUser()
       
       if (error || !data.user) {
+        return null
+      }
+
+      // Check if email is confirmed
+      if (!data.user.email_confirmed_at) {
+        console.warn('User email not confirmed')
         return null
       }
 

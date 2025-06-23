@@ -102,7 +102,8 @@ describe('AuthService - Real Supabase Integration', () => {
       const mockUser = {
         id: 'user-123',
         email: 'test@meteomatics.com',
-        created_at: '2025-01-01T00:00:00Z'
+        created_at: '2025-01-01T00:00:00Z',
+        email_confirmed_at: '2025-01-01T00:00:00Z'
       }
 
       const mockSupabaseResponse = {
@@ -121,8 +122,36 @@ describe('AuthService - Real Supabase Integration', () => {
         email: 'test@meteomatics.com',
         password: 'SecurePass123!'
       })
-      expect(result.user).toEqual(mockUser)
+      expect(result.user).toEqual({
+        id: 'user-123',
+        email: 'test@meteomatics.com',
+        created_at: '2025-01-01T00:00:00Z'
+      })
       expect(result.error).toBeNull()
+    })
+
+    it('should handle unconfirmed email', async () => {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@meteomatics.com',
+        created_at: '2025-01-01T00:00:00Z',
+        email_confirmed_at: null
+      }
+
+      const mockSupabaseResponse = {
+        data: {
+          user: mockUser,
+          session: { access_token: 'token-123' }
+        },
+        error: null
+      }
+
+      ;(supabase.auth.signInWithPassword as any).mockResolvedValue(mockSupabaseResponse)
+
+      const result = await AuthService.signIn('test@meteomatics.com', 'SecurePass123!')
+
+      expect(result.user).toBeNull()
+      expect(result.error?.message).toBe('Please check your email and confirm your account before signing in')
     })
 
     it('should handle invalid credentials', async () => {
@@ -177,7 +206,8 @@ describe('AuthService - Real Supabase Integration', () => {
       const mockUser = {
         id: 'user-123',
         email: 'test@meteomatics.com',
-        created_at: '2025-01-01T00:00:00Z'
+        created_at: '2025-01-01T00:00:00Z',
+        email_confirmed_at: '2025-01-01T00:00:00Z'
       }
 
       ;(supabase.auth.getUser as any).mockResolvedValue({
@@ -188,7 +218,29 @@ describe('AuthService - Real Supabase Integration', () => {
       const result = await AuthService.getCurrentUser()
 
       expect(supabase.auth.getUser).toHaveBeenCalled()
-      expect(result).toEqual(mockUser)
+      expect(result).toEqual({
+        id: 'user-123',
+        email: 'test@meteomatics.com',
+        created_at: '2025-01-01T00:00:00Z'
+      })
+    })
+
+    it('should return null when email not confirmed', async () => {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@meteomatics.com',
+        created_at: '2025-01-01T00:00:00Z',
+        email_confirmed_at: null
+      }
+
+      ;(supabase.auth.getUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null
+      })
+
+      const result = await AuthService.getCurrentUser()
+
+      expect(result).toBeNull()
     })
 
     it('should return null when not authenticated', async () => {
