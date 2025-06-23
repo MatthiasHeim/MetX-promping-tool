@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { AuthService, type AuthUser, type ValidationResult } from '../../services/auth/AuthService'
+import { AuthService, type ValidationResult } from '../../services/auth/AuthService'
 
 interface SignUpFormProps {
   onSwitchToSignIn: () => void
-  onSignUpSuccess: (user: AuthUser) => void
 }
 
-export function SignUpForm({ onSwitchToSignIn, onSignUpSuccess }: SignUpFormProps) {
+export function SignUpForm({ onSwitchToSignIn }: SignUpFormProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',

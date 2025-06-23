@@ -1197,9 +1197,6 @@ function App() {
           ) : (
             <SignUpForm 
               onSwitchToSignIn={() => setShowSignUp(false)}
-              onSignUpSuccess={(_user) => {
-                setIsAuthenticated(true)
-              }}
             />
           )}
 
