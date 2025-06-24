@@ -30,7 +30,27 @@ vi.mock('./services/prompts/PromptService', () => ({
         is_default: false,
         version: 1
       }
-    ]))
+    ])),
+    updatePrompt: vi.fn((id: string, updates: any) => Promise.resolve({
+      id,
+      name: updates.name || 'Test Prompt',
+      description: updates.description || 'Test Description',
+      template_text: updates.template_text || 'Test template',
+      json_prefix: updates.json_prefix || '{"layers": [',
+      json_suffix: updates.json_suffix || ']}',
+      use_placeholder: updates.use_placeholder || false,
+      is_default: false,
+      version: 2
+    })),
+    createPrompt: vi.fn((prompt: any) => Promise.resolve({
+      id: 'prompt-2',
+      ...prompt,
+      is_default: false,
+      version: 1
+    })),
+    deletePrompt: vi.fn(() => Promise.resolve()),
+    setPromptAsDefault: vi.fn(() => Promise.resolve()),
+    unsetPromptAsDefault: vi.fn(() => Promise.resolve())
   }
 }))
 
@@ -154,7 +174,7 @@ describe('App - Rating Functionality', () => {
     
     // Wait for app to load
     await waitFor(() => {
-      expect(screen.getByText('Generate MetX Dashboard')).toBeInTheDocument()
+      expect(screen.getByText('MetX Prompting Tool')).toBeInTheDocument()
     })
 
     // Generate a result
@@ -197,6 +217,176 @@ describe('App - Rating Functionality', () => {
     await waitFor(() => {
       expect(screen.getByText('Manual Rating')).toBeInTheDocument()
       expect(screen.getByText('Great result!')).toBeInTheDocument()
+    })
+  })
+})
+
+describe('App - Prompt Editing Functionality', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should navigate to editor when Edit button is clicked', async () => {
+    const user = userEvent.setup()
+    
+    render(<App />)
+    
+    // Wait for app to load
+    await waitFor(() => {
+      expect(screen.getByText('Generate MetX Dashboard')).toBeInTheDocument()
+    })
+
+    // Navigate to Prompts tab
+    const promptsTab = screen.getByText('Prompts')
+    await user.click(promptsTab)
+
+    // Wait for prompts to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Prompt')).toBeInTheDocument()
+    })
+
+    // Click Edit button
+    const editButton = screen.getByText('Edit')
+    await user.click(editButton)
+
+    // Verify we're in editor view
+    await waitFor(() => {
+      expect(screen.getByText('Edit Prompt')).toBeInTheDocument()
+      expect(screen.getByText('Prompt Name')).toBeInTheDocument()
+    })
+  })
+
+  it('should properly manage state after saving prompt and show Edit button', async () => {
+    const user = userEvent.setup()
+    
+    render(<App />)
+    
+    // Wait for app to load
+    await waitFor(() => {
+      expect(screen.getByText('Generate MetX Dashboard')).toBeInTheDocument()
+    })
+
+    // Navigate to Prompts tab
+    const promptsTab = screen.getByText('Prompts')
+    await user.click(promptsTab)
+
+    // Wait for prompts to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Prompt')).toBeInTheDocument()
+    })
+
+    // Click Edit button
+    const editButton = screen.getByText('Edit')
+    await user.click(editButton)
+
+    // Wait for editor to load
+    await waitFor(() => {
+      expect(screen.getByText('Edit Prompt')).toBeInTheDocument()
+    })
+
+    // Edit the prompt name
+    const nameInput = screen.getByDisplayValue('Test Prompt')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Updated Test Prompt')
+
+    // Save the prompt
+    const saveButton = screen.getByText('Save Prompt')
+    await user.click(saveButton)
+
+    // Verify we're back to prompts view and Edit button is visible
+    await waitFor(() => {
+      expect(screen.getByText('📝 Prompt Management System')).toBeInTheDocument()
+      expect(screen.getByText('Edit')).toBeInTheDocument()
+    })
+
+    // Verify the prompt was updated in the list
+    await waitFor(() => {
+      expect(screen.getByText('Test Prompt')).toBeInTheDocument() // Still shows original because mock returns original
+    })
+  })
+
+  it('should cancel editing and return to prompts view', async () => {
+    const user = userEvent.setup()
+    
+    render(<App />)
+    
+    // Wait for app to load
+    await waitFor(() => {
+      expect(screen.getByText('Generate MetX Dashboard')).toBeInTheDocument()
+    })
+
+    // Navigate to Prompts tab
+    const promptsTab = screen.getByText('Prompts')
+    await user.click(promptsTab)
+
+    // Wait for prompts to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Prompt')).toBeInTheDocument()
+    })
+
+    // Click Edit button
+    const editButton = screen.getByText('Edit')
+    await user.click(editButton)
+
+    // Wait for editor to load
+    await waitFor(() => {
+      expect(screen.getByText('Edit Prompt')).toBeInTheDocument()
+    })
+
+    // Cancel editing
+    const cancelButton = screen.getByText('Cancel')
+    await user.click(cancelButton)
+
+    // Verify we're back to prompts view
+    await waitFor(() => {
+      expect(screen.getByText('📝 Prompt Management System')).toBeInTheDocument()
+      expect(screen.getByText('Edit')).toBeInTheDocument()
+    })
+  })
+
+  it('should create new prompt and return to prompts view with Edit button visible', async () => {
+    const user = userEvent.setup()
+    
+    render(<App />)
+    
+    // Wait for app to load
+    await waitFor(() => {
+      expect(screen.getByText('Generate MetX Dashboard')).toBeInTheDocument()
+    })
+
+    // Navigate to Prompts tab
+    const promptsTab = screen.getByText('Prompts')
+    await user.click(promptsTab)
+
+    // Wait for prompts to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Prompt')).toBeInTheDocument()
+    })
+
+    // Click Create New Prompt button
+    const createButton = screen.getByText('+ Create New Prompt')
+    await user.click(createButton)
+
+    // Wait for editor to load
+    await waitFor(() => {
+      expect(screen.getByText('Create New Prompt')).toBeInTheDocument()
+    })
+
+    // Fill in the form
+    const nameInput = screen.getByPlaceholderText('e.g., Advanced Aviation Weather')
+    await user.type(nameInput, 'New Test Prompt')
+
+    const templateInput = screen.getByPlaceholderText('Enter your prompt template here...')
+    await user.type(templateInput, 'This is a new test template')
+
+    // Save the prompt
+    const saveButton = screen.getByText('Save Prompt')
+    await user.click(saveButton)
+
+    // Verify we're back to prompts view and Edit button is visible
+    await waitFor(() => {
+      expect(screen.getByText('📝 Prompt Management System')).toBeInTheDocument()
+      expect(screen.getByText('Edit')).toBeInTheDocument()
     })
   })
 }) 

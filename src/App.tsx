@@ -883,6 +883,7 @@ function App() {
       
       // Refresh the prompt list
       await loadPrompts()
+      setEditingPrompt(null)
       setCurrentView('prompts')
     } catch (error) {
       console.error('Error saving prompt:', error)
