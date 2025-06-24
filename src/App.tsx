@@ -1475,9 +1475,9 @@ function App() {
                   </div>
                 ) : (
                   prompts.map(prompt => (
-                  <div key={prompt.id} className={`card ${prompt.is_default ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
+                  <div key={prompt.id} className={`card ${prompt.is_default ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`} style={{minHeight: '200px', overflow: 'visible'}}>
+                                          <div className="flex justify-between items-start" style={{minHeight: '100px'}}>
+                        <div className="flex-1" style={{maxWidth: 'calc(100% - 300px)'}}>
                         <div className="flex items-center space-x-2">
                           <h3 className="text-lg font-semibold text-gray-900">{prompt.name}</h3>
                           {prompt.is_default && (
@@ -1498,7 +1498,7 @@ function App() {
                           <span>Uses placeholder: {prompt.use_placeholder ? 'Yes' : 'No'}</span>
                         </div>
                       </div>
-                      <div className="flex space-x-2 ml-4">
+                      <div className="flex space-x-2 ml-4 flex-shrink-0" style={{minWidth: '280px'}}>
                         {prompt.is_default ? (
                           <button
                             onClick={() => handleUnsetPromptAsDefault(prompt)}
