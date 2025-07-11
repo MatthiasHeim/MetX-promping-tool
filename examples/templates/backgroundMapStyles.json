@@ -1,0 +1,21 @@
+[
+  { "id": "topographique", "label": "Maptiler: Topographique" },
+  { "id": "f866428e-554f-4ef7-b745-5b893ea778dd", "label": "Basic" },
+  { "id": "basic", "label": "Maptiler: Basic" },
+  { "id": "bright", "label": "Maptiler: Bright" },
+  { "id": "darkmatter", "label": "Maptiler: Darkmatter" },
+  { "id": "hybrid", "label": "Maptiler: Satellite Hybrid" },
+  { "id": "outdoor", "label": "Maptiler: Outdoor" },
+  { "id": "pastel", "label": "Maptiler: Pastel" },
+  { "id": "positron", "label": "Maptiler: Positron" },
+  { "id": "toner", "label": "Maptiler: Toner" },
+  { "id": "topo", "label": "Maptiler: Topo" },
+  { "id": "voyager", "label": "Maptiler: Voyager" },
+  { "id": "0e914266-89b2-46c2-8359-1b47522855c0", "label": "Maptiler: Dark Blue and Green" },
+  { "id": "3958f66e-04a7-48e9-a088-a3b3c617c617", "label": "Border" },
+  { "id": "b4033781-d6cb-42c4-ab61-59d1921da345", "label": "City Label" },
+  { "id": "542e86e1-7347-4309-826b-006008055f48", "label": "No Border No City Label" },
+  { "id": "ff991184-9793-4129-9cc5-79bf690b8efb", "label": "Europe FIR" },
+  { "id": "ac4c3d0c-1979-4c94-b56c-e60ce151b2c0", "label": "Border Saudi Arabia" },
+  { "id": "61bd317a-d1b2-4d81-ae68-011ad0d4d9b5", "label": "Wind Farms" }
+]

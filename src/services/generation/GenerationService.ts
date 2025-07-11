@@ -1,6 +1,7 @@
 // GenerationService - Core generation pipeline for MetX prompting tool
 import { OpenAIService } from './OpenAIService'
 import { OpenRouterService } from './OpenRouterService'
+import { JsonValidator } from '../../utils/JsonValidator'
 import type { 
   Model, 
   GenerationProgress, 
@@ -98,6 +99,54 @@ export class GenerationService {
     }
   }
 
+  // Enhanced JSON validation and fixing for MetX
+  static validateAndFixJson(jsonString: string, requireMetXStructure: boolean = true): {
+    isValid: boolean;
+    fixedJson: string;
+    errors: string[];
+    warnings: string[];
+    wasFixed: boolean;
+  } {
+    const result = JsonValidator.validateJson(jsonString, {
+      autoFix: true,
+      indentSize: 2,
+      requireMetXStructure,
+      strictMode: true
+    })
+
+    return {
+      isValid: result.isValid,
+      fixedJson: result.fixedJson || jsonString,
+      errors: result.errors,
+      warnings: result.warnings,
+      wasFixed: result.fixed
+    }
+  }
+
+  // Specifically for layer JSON validation
+  static validateAndFixLayerJson(layerJson: string): {
+    isValid: boolean;
+    fixedJson: string;
+    errors: string[];
+    warnings: string[];
+    wasFixed: boolean;
+  } {
+    const result = JsonValidator.validateLayerJson(layerJson, {
+      autoFix: true,
+      indentSize: 2,
+      requireMetXStructure: true,
+      strictMode: true
+    })
+
+    return {
+      isValid: result.isValid,
+      fixedJson: result.fixedJson || layerJson,
+      errors: result.errors,
+      warnings: result.warnings,
+      wasFixed: result.fixed
+    }
+  }
+
   // Progress tracking methods
   static createProgressTracker(userInputId: string, modelIds: string[]): GenerationProgress {
     return {
@@ -171,22 +220,45 @@ export class GenerationService {
   static async executeGeneration(
     prompt: string,
     model: Model,
-    imageUrl?: string
+    imageUrl?: string,
+    jsonPrefix?: string,
+    jsonSuffix?: string
   ): Promise<{
     success: boolean;
     content?: string;
     tokens_used?: number;
     latency_ms: number;
     error?: GenerationError;
+    json_validation?: {
+      isValid: boolean;
+      fixedJson: string;
+      errors: string[];
+      warnings: string[];
+      wasFixed: boolean;
+    };
   }> {
     try {
       // Route to appropriate service based on model provider
+      let result;
       if (model.provider === 'openrouter') {
-        return await OpenRouterService.generateCompletion(prompt, model, imageUrl)
+        result = await OpenRouterService.generateCompletion(prompt, model, imageUrl)
       } else {
         // Default to OpenAI service for 'openai' provider and others
-        return await OpenAIService.generateCompletion(prompt, model, imageUrl)
+        result = await OpenAIService.generateCompletion(prompt, model, imageUrl)
       }
+
+      // If generation was successful and we have JSON prefix/suffix, validate and fix JSON
+      if (result.success && result.content && (jsonPrefix || jsonSuffix)) {
+        const fullJson = this.processJsonOutput(result.content, jsonPrefix, jsonSuffix)
+        const validation = this.validateAndFixJson(fullJson, true)
+        
+        return {
+          ...result,
+          json_validation: validation
+        }
+      }
+
+      return result
     } catch (error) {
       return {
         success: false,

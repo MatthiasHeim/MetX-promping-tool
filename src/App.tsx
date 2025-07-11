@@ -392,36 +392,42 @@ function App() {
       .replace(/\{\{NE_LNG\}\}/g, locationCoords.ne_lng.toString())
       .replace(/\{\{NE_LAT\}\}/g, locationCoords.ne_lat.toString())
     
-    // Format the raw output based on what the prompt expects
+    // Format the raw output - let AI provide the layers content directly without extra indentation
     let formattedOutput: string
     if (Array.isArray(rawOutput)) {
       // For arrays, format each element with proper indentation and remove outer brackets
       formattedOutput = rawOutput.map(item => 
         JSON.stringify(item, null, 2)
           .split('\n')
-          .map(line => line ? '            ' + line : line) // Add indentation to match prefix structure
+          .map(line => line ? '  ' + line : line) // Use proper 2-space indentation
           .join('\n')
       ).join(',\n')
     } else {
       formattedOutput = JSON.stringify(rawOutput, null, 2)
         .split('\n')
-        .map(line => line ? '            ' + line : line) // Add indentation to match prefix structure
+        .map(line => line ? '  ' + line : line) // Use proper 2-space indentation
         .join('\n')
     }
     
     const result = prefix + formattedOutput + suffix
     
-    // Test if the result is valid JSON
-    try {
-      JSON.parse(result)
-      return result
-    } catch (error) {
-      console.warn('Constructed JSON is invalid, falling back to raw output:', error)
+    // Use comprehensive JSON validation and fixing
+    const validation = GenerationService.validateAndFixJson(result, true)
+    
+    if (validation.isValid) {
+      if (validation.wasFixed) {
+        console.log('JSON was automatically fixed during generation')
+        console.log('Validation warnings:', validation.warnings)
+      }
+      return validation.fixedJson
+    } else {
+      console.warn('JSON validation failed:', validation.errors)
       console.log('Invalid JSON preview:', result.substring(0, 200) + '...')
       // Return the raw output as a valid JSON fallback
       return JSON.stringify({
         layers: Array.isArray(rawOutput) ? rawOutput : [rawOutput],
-        note: 'Prefix/suffix combination failed, returning raw layers',
+        note: 'JSON validation failed, returning raw layers',
+        validation_errors: validation.errors,
         original_prefix: prefix.substring(0, 100) + '...',
         original_suffix: suffix.substring(0, 100) + '...'
       }, null, 2)

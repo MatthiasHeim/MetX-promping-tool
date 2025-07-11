@@ -1,0 +1,1332 @@
+[
+    {
+        "identifier": "mix",
+        "name": "Meteomatics Mix",
+        "description_de": "",
+        "description_en": "The Meteomatics Mix combines different models and sources into an intelligent blend, such that the best data source is chosen for each time and location. The length of the forecasting period as well as the spatial resolution depends on the model from which the requested parameters originate.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.000833333,
+            "resolution_lat": 0.000833333,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ai-fourcast-ecmwf-ifs",
+        "name": "AI FOURCAST ECMWF-IFS",
+        "description_de": "",
+        "description_en": "AI inferred forecast, Fourcast model, using ECMWF-IFS as initial time step",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 480.0,
+        "bounding_box": {
+            "resolution_lng": 0.25,
+            "resolution_lat": 0.25,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 179.75
+        }
+    },
+    {
+        "identifier": "ai-graphcast-ecmwf-ifs",
+        "name": "AI GRAPHCAST ECMWF-IFS",
+        "description_de": "",
+        "description_en": "AI inferred forecast, Graphcast model, using ECMWF-IFS as initial time step",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 480.0,
+        "bounding_box": {
+            "resolution_lng": 0.25,
+            "resolution_lat": 0.25,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 179.75
+        }
+    },
+    {
+        "identifier": "cmc-gem",
+        "name": "CMC GEM",
+        "description_de": "",
+        "description_en": "Global Environmental Multiscale model operated by the Canadian Meteorological Center.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 2.0,
+        "lead_time": 384.0,
+        "bounding_box": {
+            "resolution_lng": 0.15,
+            "resolution_lat": 0.15,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "chc-chirps2",
+        "name": "Chirps 2",
+        "description_de": "Rainfall hindcast from rain gauge and satellite observations from 1981 until present.",
+        "description_en": "Rainfall hindcast from rain gauge and satellite observations from 1981 until present.",
+        "type": "historic",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.05,
+            "resolution_lat": 0.05,
+            "south": -49.975,
+            "west": -180.025,
+            "north": 49.975,
+            "east": 180.025
+        }
+    },
+    {
+        "identifier": "dwd-icon-d2",
+        "name": "DWD ICON D2",
+        "description_de": "",
+        "description_en": "Weather model from the German weather service DWD, Regional grid covering DACH area.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 8.0,
+        "lead_time": 48.0,
+        "bounding_box": {
+            "resolution_lng": 0.02,
+            "resolution_lat": 0.02,
+            "south": 43.18,
+            "west": -3.94,
+            "north": 58.08,
+            "east": 20.34
+        }
+    },
+    {
+        "identifier": "dwd-icon-eu",
+        "name": "DWD ICON EU",
+        "description_de": "",
+        "description_en": "Weather model from the German weather service DWD, Regional/Europe grid.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 120.0,
+        "bounding_box": {
+            "resolution_lng": 0.0625,
+            "resolution_lat": 0.0625,
+            "south": 29.5,
+            "west": -23.5,
+            "north": 70.5,
+            "east": 45.0
+        }
+    },
+    {
+        "identifier": "dwd-icon-global",
+        "name": "DWD ICON GLOBAL",
+        "description_de": "",
+        "description_en": "Weather model from the German weather service DWD, global forecast.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 180.0,
+        "bounding_box": {
+            "resolution_lng": 0.125,
+            "resolution_lat": 0.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-aifs",
+        "name": "ECMWF AIFS",
+        "description_de": "",
+        "description_en": "ECMWF Artificial Intelligence/Integrated Forecasting System (AIFS)",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 360.0,
+        "bounding_box": {
+            "resolution_lng": 0.25,
+            "resolution_lat": 0.25,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-cams",
+        "name": "ECMWF CAMS",
+        "description_de": "",
+        "description_en": "Copernicus Atmosphere Monitoring Service by the ECMWF. CAMS is one of six services that form Copernicus (Earth observation program of the European Union). Copernicus offers information services based on satellite Earth observation, in situ (non-satellite) data and modeling. CAMS provides global forecasts of aerosols, atmospheric pollutants, greenhouse gases, stratospheric ozone and the UV-Index.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 2.0,
+        "lead_time": 120.0,
+        "bounding_box": {
+            "resolution_lng": 0.4,
+            "resolution_lat": 0.4,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-cmems",
+        "name": "ECMWF CMEMS",
+        "description_de": "Verbesserte Ozeandaten auf der Grundlage des Copernicus Marine Environment Monitoring Service (CMEMS), die Informationen über Meeresströmungen und Meereisdicke liefern.",
+        "description_en": "Enhanced oceanic data based on Copernicus Marine Environment Monitoring Service (CMEMS), which provides information about ocean currents and sea ice thickness.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 1.0,
+        "lead_time": 9.5,
+        "bounding_box": {
+            "resolution_lng": 0.0833333,
+            "resolution_lat": 0.0833333,
+            "south": -80.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-efi",
+        "name": "ECMWF EFI",
+        "description_de": "ecmwf-efi",
+        "description_en": "ECMWF Extreme Forecast Index (EFI) & Shift of Tails (SOT))",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 0.14285714285714285,
+        "lead_time": 1100.0,
+        "bounding_box": {
+            "resolution_lng": 0.25,
+            "resolution_lat": 0.25,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-ens",
+        "name": "ECMWF ENS",
+        "description_de": "",
+        "description_en": "Model data from the Ensemble Prediction System (EPS) of ECMWF. EPS is a system that is used to predict forecast confidence. Uncertainties in the initial conditions are represented by creating a set of 50 forecasts (ensemble members) with slightly different initial conditions.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": 51,
+        "updates_per_day": 4.0,
+        "lead_time": 360.0,
+        "bounding_box": {
+            "resolution_lng": 0.2,
+            "resolution_lat": 0.2,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-ens-cluster",
+        "name": "ECMWF ENS Cluster",
+        "description_de": "",
+        "description_en": "Daily clustering data of the forecast fields from the ECMWF ensemble data. The clustering is performed according to a set of fixed climatological regimes for each season, computed using 29 years of reanalysis data.",
+        "type": "model",
+        "num_clusters": 6,
+        "num_ensemble_members": null,
+        "updates_per_day": 2.0,
+        "lead_time": 360.0,
+        "bounding_box": {
+            "resolution_lng": 1.5,
+            "resolution_lat": 1.5,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 178.5
+        }
+    },
+    {
+        "identifier": "ecmwf-ens-tc",
+        "name": "ECMWF ENS TC",
+        "description_de": "",
+        "description_en": "Ensemble model data for tropical cyclones (tropical depressions, tropical storms, hurricanes and typhoons) from ECMWF.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 2.0,
+        "lead_time": 240.0,
+        "bounding_box": {
+            "resolution_lng": 0.1,
+            "resolution_lat": 0.1,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-era5",
+        "name": "ECMWF ERA5",
+        "description_de": "",
+        "description_en": "ERA5 is a global atmospheric reanalysis from 1979 to present, continuously updated in real time. ERA5 combines vast amounts of historical observations into global estimates using advanced modeling and data assimilation systems.",
+        "type": "historic",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.25,
+            "resolution_lat": 0.25,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-ifs",
+        "name": "ECMWF IFS",
+        "description_de": "",
+        "description_en": "The European Center for Medium-Range Weather Forecasts' (ECMWF) Integrated Forecasting System (IFS) is the world's leading atmospheric global circulation model that describes the dynamical evolution of the atmosphere worldwide and is used for medium-range forecasts. ",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 360.0,
+        "bounding_box": {
+            "resolution_lng": 0.1,
+            "resolution_lat": 0.1,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-mmsf",
+        "name": "ECMWF MMSF",
+        "description_de": "ecmwf-mmsf",
+        "description_en": "Long-range seasonal forecast by ECMWF.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": 51,
+        "updates_per_day": 0.03,
+        "lead_time": 5040.0,
+        "bounding_box": {
+            "resolution_lng": 0.75,
+            "resolution_lat": 0.75,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-vareps",
+        "name": "ECMWF VAREPS",
+        "description_de": "",
+        "description_en": "Long-range ensemble forecast by ECMWF.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": 101,
+        "updates_per_day": 1.0,
+        "lead_time": 1104.0,
+        "bounding_box": {
+            "resolution_lng": 0.4,
+            "resolution_lat": 0.4,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ecmwf-wam",
+        "name": "ECMWF WAM",
+        "description_de": "",
+        "description_en": "The ECMWF Ocean Wave Model is a global model and describes the development and evolution of wind generated surface waves and their height, direction and period. Since it does not dynamically model the ocean itself, it is coupled to the atmospheric forecast model and to the ocean model.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 2.0,
+        "lead_time": 3840.0,
+        "bounding_box": {
+            "resolution_lng": 0.125,
+            "resolution_lat": 0.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "eumetsat-h03b",
+        "name": "Eumetsat Multi-Sensor Precipitation Estimate (H03B)",
+        "description_de": "",
+        "description_en": "Multi-Sensor Precipitation Estimate based on IR satellite images from the SEVIRI instrument. This enable instantaneous precipitation charts.",
+        "type": "satellite",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.0343481,
+            "resolution_lat": 0.0431034,
+            "south": -60.0,
+            "west": -80.0,
+            "north": 67.5,
+            "east": 80.0
+        }
+    },
+    {
+        "identifier": "eumetsat-h60b",
+        "name": "Eumetsat Multi-Sensor Precipitation Estimate (H60B)",
+        "description_de": "",
+        "description_en": "The H60B product provides instantaneous precipitation maps created by combining data from the Meteosat SEVIRI instrument calibrated with precipitation measurements from other satellites.",
+        "type": "satellite",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.0343481,
+            "resolution_lat": 0.0431034,
+            "south": -60.0,
+            "west": -80.0,
+            "north": 67.5,
+            "east": 80.0
+        }
+    },
+    {
+        "identifier": "fmi-silam",
+        "name": "FMI Silam",
+        "description_de": "",
+        "description_en": "System for Integrated Modeling of Atmospheric Composition by the Finnish Meteorological Institute for Europe.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 48.0,
+        "bounding_box": {
+            "resolution_lng": 0.1,
+            "resolution_lat": 0.1,
+            "south": 30.05,
+            "west": -24.95,
+            "north": 69.95,
+            "east": 44.95
+        }
+    },
+    {
+        "identifier": "ksancm-wrf-16",
+        "name": "KSA NCM WRF 1.6",
+        "description_de": "",
+        "description_en": "WRF 1.6km model from the National Center for Meteorology of the Kingdom of Saudi Arabia.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 132.0,
+        "bounding_box": {
+            "resolution_lng": 0.0142528,
+            "resolution_lat": 0.0167139,
+            "south": 9.765,
+            "west": 32.053,
+            "north": 32.469,
+            "east": 61.268
+        }
+    },
+    {
+        "identifier": "ksancm-wrf-48",
+        "name": "KSA NCM WRF 4.8",
+        "description_de": "",
+        "description_en": "WRF 4.8km model from the National Center for Meteorology of the Kingdom of Saudi Arabia.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 252.0,
+        "bounding_box": {
+            "resolution_lng": 0.0415203,
+            "resolution_lat": 0.0543348,
+            "south": -0.433,
+            "west": 15.146,
+            "north": 43.121,
+            "east": 72.088
+        }
+    },
+    {
+        "identifier": "ksancm-wrf-dust",
+        "name": "KSA NCM WRF Dust",
+        "description_de": "",
+        "description_en": "WRF dust model from the National Center for Meteorology of the Kingdom of Saudi Arabia.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 252.0,
+        "bounding_box": {
+            "resolution_lng": 0.0374198,
+            "resolution_lat": 0.0519131,
+            "south": -12.115,
+            "west": -9.1,
+            "north": 48.878,
+            "east": 84.239
+        }
+    },
+    {
+        "identifier": "ksancm-wrf-nowcast",
+        "name": "KSA NCM WRF Nowcast",
+        "description_de": "",
+        "description_en": "WRF nowcast model from the National Center for Meteorology of the Kingdom of Saudi Arabia.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 24.0,
+        "lead_time": 12.0,
+        "bounding_box": {
+            "resolution_lng": 0.00895316,
+            "resolution_lat": 0.0105385,
+            "south": 16.088,
+            "west": 33.425,
+            "north": 32.462,
+            "east": 52.372
+        }
+    },
+    {
+        "identifier": "meteosat-msg",
+        "name": "Meteosat (MSG)",
+        "description_de": "meteosat-msg",
+        "description_en": "meteosat-msg",
+        "type": "satellite",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.0130172,
+            "resolution_lat": 0.0156203,
+            "south": 26.0,
+            "west": -12.0,
+            "north": 67.9935,
+            "east": 40.0
+        }
+    },
+    {
+        "identifier": "meteosat-msg-ext",
+        "name": "Meteosat (MSG external)",
+        "description_de": "meteosat-msg-ext",
+        "description_en": "meteosat-msg-ext",
+        "type": "satellite",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.0130172,
+            "resolution_lat": 0.0156203,
+            "south": 26.0,
+            "west": -12.0,
+            "north": 67.993,
+            "east": 40.0
+        }
+    },
+    {
+        "identifier": "mf-arome",
+        "name": "MeteoFrance Arome",
+        "description_de": "",
+        "description_en": "Regional model by Meteo France. The resolution of the model depends on the parameter.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 5.0,
+        "lead_time": 42.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 37.85,
+            "west": -8.4,
+            "north": 54.8,
+            "east": 12.39
+        }
+    },
+    {
+        "identifier": "mix-radar",
+        "name": "Meteomatics Mix Radar",
+        "description_de": "",
+        "description_en": "Composite of precipitation radar from various sources (e.g. NOAA, DWD, ...) including nowcasting.",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.002,
+            "resolution_lat": 0.0025,
+            "south": -24.0,
+            "west": -170.324,
+            "north": 72.76,
+            "east": 105.51
+        }
+    },
+    {
+        "identifier": "mix-satellite",
+        "name": "Meteomatics Mix Satellite",
+        "description_de": "",
+        "description_en": "Meteomatics satellite composite comprising geostationary satellite images of GOES 16, GOES 17, Himawari8, Meteosat 8, Meteosat 11 and Meteosat MSG. RGB and IR channels are available.",
+        "type": "satellite",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": -71.5,
+            "west": -180.0,
+            "north": 71.5,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "mm-heliosat",
+        "name": "Meteomatics Heliosat",
+        "description_de": "",
+        "description_en": "Satellite-based cloud and radiation forecast by Meteomatics.",
+        "type": "satellite",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.013012,
+            "resolution_lat": 0.0156169,
+            "south": 35.5,
+            "west": -11.0,
+            "north": 62.5,
+            "east": 19.0
+        }
+    },
+    {
+        "identifier": "mm-lightning",
+        "name": "Meteomatics Lightning",
+        "description_de": "",
+        "description_en": "Lightning measurements and nowcast for central Europe.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 1.0,
+            "resolution_lat": 1.0,
+            "south": 40.0,
+            "west": -5.0,
+            "north": 60.0,
+            "east": 20.0
+        }
+    },
+    {
+        "identifier": "mm-swiss1k",
+        "name": "Meteomatics SWISS1k",
+        "description_de": "",
+        "description_en": "High-resolution model for Switzerland designed by Meteomatics.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 72.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 45.5,
+            "west": 5.0,
+            "north": 48.5,
+            "east": 11.5
+        }
+    },
+    {
+        "identifier": "mm-swiss1k-hindcast",
+        "name": "Meteomatics SWISS1k Hindcast",
+        "description_de": "",
+        "description_en": "High-resolution model for Switzerland designed by Meteomatics, for 2003 - 2023",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 1.0,
+        "lead_time": 27.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 45.5,
+            "west": 5.0,
+            "north": 48.5,
+            "east": 11.5
+        }
+    },
+    {
+        "identifier": "mm-euro1k",
+        "name": "Meteomatics EURO1k",
+        "description_de": "",
+        "description_en": "High-resolution model for Europe designed by Meteomatics.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 24.0,
+        "lead_time": 27.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 27.72,
+            "west": -25.0,
+            "north": 71.5,
+            "east": 59.5
+        }
+    },
+    {
+        "identifier": "mm-nd1k",
+        "name": "Meteomatics ND1k",
+        "description_de": "",
+        "description_en": "High-resolution model for North Dakota designed by Meteomatics.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 24.0,
+        "lead_time": 26.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 45.7,
+            "west": -104.36,
+            "north": 49.17,
+            "east": -96.44
+        }
+    },
+    {
+        "identifier": "mm-sing1k",
+        "name": "Meteomatics SING1k",
+        "description_de": "",
+        "description_en": "High-resolution model for Singapore designed by Meteomatics.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 24.0,
+        "lead_time": 26.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": -0.3,
+            "west": 102.04,
+            "north": 3.1,
+            "east": 105.51
+        }
+    },
+    {
+        "identifier": "mm-tides",
+        "name": "Meteomatics Tides",
+        "description_de": "",
+        "description_en": "Tidal amplitude simulation by Meteomatics.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.125,
+            "resolution_lat": 0.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "mm-us1k",
+        "name": "Meteomatics US1k",
+        "description_de": "",
+        "description_en": "High-resolution model for the U.S. designed by Meteomatics.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 24.0,
+        "lead_time": 49.25,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 15.7,
+            "west": -130.9,
+            "north": 54.4,
+            "east": -60.6
+        }
+    },
+    {
+        "identifier": "mri-esm2-ssp126",
+        "name": "MRI-ESM2 SSP126",
+        "description_de": "Downscaled climate data for Scenario 1 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0. ",
+        "description_en": "Downscaled climate data for Scenario 1 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0. ",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 700800.0,
+        "bounding_box": {
+            "resolution_lng": 1.125,
+            "resolution_lat": 1.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "mri-esm2-ssp245",
+        "name": "MRI-ESM2 SSP245",
+        "description_de": "Downscaled climate data for Scenario 2 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "description_en": "Downscaled climate data for Scenario 2 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 700800.0,
+        "bounding_box": {
+            "resolution_lng": 1.125,
+            "resolution_lat": 1.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "mri-esm2-ssp370",
+        "name": "MRI-ESM2 SSP370",
+        "description_de": "Downscaled climate data for Scenario 3 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "description_en": "Downscaled climate data for Scenario 3 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 700800.0,
+        "bounding_box": {
+            "resolution_lng": 1.125,
+            "resolution_lat": 1.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "mri-esm2-ssp460",
+        "name": "MRI-ESM2 SSP460",
+        "description_de": "Downscaled climate data for Scenario 4 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "description_en": "Downscaled climate data for Scenario 4 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 700800.0,
+        "bounding_box": {
+            "resolution_lng": 1.125,
+            "resolution_lat": 1.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "mri-esm2-ssp585",
+        "name": "MRI-ESM2 SSP585",
+        "description_de": "Downscaled climate data for Scenario 5 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "description_en": "Downscaled climate data for Scenario 5 covering the period from 2015 until 2100 provided by the Meteorological Research Institute Earth System Model Version 2.0.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": 700800.0,
+        "bounding_box": {
+            "resolution_lng": 1.125,
+            "resolution_lat": 1.125,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "nasa-ghrsst",
+        "name": "NASA GHRSST",
+        "description_de": "",
+        "description_en": "Sea surface temperature and sea ice cover analysis produced as a retrospective dataset in high resolution.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 1.0,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "nasa-srtm",
+        "name": "NASA SRTM",
+        "description_de": "",
+        "description_en": "90 m resolution topography by NASA.",
+        "type": "static",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": null,
+        "lead_time": null,
+        "bounding_box": {
+            "resolution_lng": 0.000833333,
+            "resolution_lat": 0.000833333,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ncep-gfs",
+        "name": "NCEP GFS",
+        "description_de": "",
+        "description_en": "Global Forecasting System by the National Centers for Environmental Prediction (NCEP).",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 384.0,
+        "bounding_box": {
+            "resolution_lng": 0.25,
+            "resolution_lat": 0.25,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ncep-gfs-ens",
+        "name": "NCEP GFS ENS",
+        "description_de": "",
+        "description_en": "Ensemble model of Global Forecasting System by NCEP. The GEFS attempts to quantify the amount of uncertainty in a forecast by generating an ensemble of 21 members, each perturbed from the original observations.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": 21,
+        "updates_per_day": 4.0,
+        "lead_time": 384.0,
+        "bounding_box": {
+            "resolution_lng": 0.5,
+            "resolution_lat": 0.5,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ncep-hrrr",
+        "name": "NCEP HRRR",
+        "description_de": "",
+        "description_en": "High-Resolution Rapid Refresh by the National Centers for Environmental Prediction (NCEP)",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 24.0,
+        "lead_time": 48.0,
+        "bounding_box": {
+            "resolution_lng": 0.0250617,
+            "resolution_lat": 0.0406998,
+            "south": 21.139,
+            "west": -134.095,
+            "north": 52.615,
+            "east": -60.918
+        }
+    },
+    {
+        "identifier": "noaa-hycom",
+        "name": "NOAA HYCOM",
+        "description_de": "",
+        "description_en": "The NOAA Hybrid Coordinate Ocean Model provides forecasts for several wave parameters. The hybrid coordinate approach proved to be feasible for handling deep and shallow water regions throughout the annual heating/cooling cycle.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 1.0,
+        "lead_time": 168.0,
+        "bounding_box": {
+            "resolution_lng": 0.08,
+            "resolution_lat": 0.08,
+            "south": -80.0,
+            "west": -180.0,
+            "north": 80.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "noaa-swpc",
+        "name": "NOAA SWPC",
+        "description_de": "",
+        "description_en": "Geomagnetic activity observation and forecast by NOAA.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 2.0,
+        "lead_time": 48.0,
+        "bounding_box": {
+            "resolution_lng": 180.0,
+            "resolution_lat": 360.0,
+            "south": -90.0,
+            "west": -180.0,
+            "north": 90.0,
+            "east": 180.0
+        }
+    },
+    {
+        "identifier": "ukmo-um10",
+        "name": "UKMO UM10",
+        "description_de": "Das Einheitliche Modell ist ein numerisches Modell der Atmosphäre, das für Anwendungen in Wetter und Klima gebraucht wird.",
+        "description_en": "The Unified Model is a numerical model of the atmosphere used for both weather and climate applications.",
+        "type": "model",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 4.0,
+        "lead_time": 168.0,
+        "bounding_box": {
+            "resolution_lng": 0.09375,
+            "resolution_lat": 0.140625,
+            "south": -90.046,
+            "west": -180.07,
+            "north": 90.046,
+            "east": 180.07
+        }
+    },
+    {
+        "identifier": "opera-radar",
+        "name": "Radar OPERA",
+        "description_de": "",
+        "description_en": "Pan-European radar composite from The Operational Program on the Exchange of Weather Radar Information (OPERA)",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 34.066,
+            "west": -27.656,
+            "north": 73.932,
+            "east": 35.596
+        }
+    },
+    {
+        "identifier": "at-radar",
+        "name": "Radar Austria",
+        "description_de": "",
+        "description_en": "Austrian radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.005,
+            "resolution_lat": 0.005,
+            "south": 45.0,
+            "west": 8.5,
+            "north": 50.12,
+            "east": 19.6
+        }
+    },
+    {
+        "identifier": "ca-radar",
+        "name": "Radar Canada",
+        "description_de": "",
+        "description_en": "Canadian radar composite covering Canada and entire U.S.",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 240.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.00900161,
+            "resolution_lat": 0.0184428,
+            "south": 16.935,
+            "west": -170.324,
+            "north": 67.191,
+            "east": -50.003
+        }
+    },
+    {
+        "identifier": "cz-radar",
+        "name": "Radar Czechia",
+        "description_de": "",
+        "description_en": "Czech radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.00902381,
+            "resolution_lat": 0.0139749,
+            "south": 48.052,
+            "west": 11.274,
+            "north": 51.453,
+            "east": 19.617
+        }
+    },
+    {
+        "identifier": "dk-radar",
+        "name": "Radar Denmark",
+        "description_de": "",
+        "description_en": "Danish radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 144.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.004,
+            "resolution_lat": 0.008,
+            "south": 52.9,
+            "west": 4.7,
+            "north": 59.7,
+            "east": 18.7
+        }
+    },
+    {
+        "identifier": "fi-radar",
+        "name": "Radar Finland",
+        "description_de": "",
+        "description_en": "Finnish radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.002,
+            "resolution_lat": 0.005,
+            "south": 57.0,
+            "west": 17.0,
+            "north": 70.0,
+            "east": 35.0
+        }
+    },
+    {
+        "identifier": "mf-radar-metropolitan",
+        "name": "Radar France",
+        "description_de": "",
+        "description_en": "French radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.0044,
+            "resolution_lat": 0.0066,
+            "south": 37.457,
+            "west": -9.965,
+            "north": 53.67,
+            "east": 17.564
+        }
+    },
+    {
+        "identifier": "dwd-radar-px250",
+        "name": "Radar Germany",
+        "description_de": "",
+        "description_en": "German radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.0025,
+            "resolution_lat": 0.0025,
+            "south": 46.6,
+            "west": 4.5,
+            "north": 55.5,
+            "east": 16.05
+        }
+    },
+    {
+        "identifier": "it-radar",
+        "name": "Radar Italy",
+        "description_de": "",
+        "description_en": "Italian radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.00913131,
+            "resolution_lat": 0.0132944,
+            "south": 35.07,
+            "west": 4.53,
+            "north": 47.844,
+            "east": 20.47
+        }
+    },
+    {
+        "identifier": "no-radar",
+        "name": "Radar Norway",
+        "description_de": "",
+        "description_en": "Norwegian radar composite covering Scandinavia",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 54.15,
+            "west": 0.49,
+            "north": 72.76,
+            "east": 35.46
+        }
+    },
+    {
+        "identifier": "pl-radar",
+        "name": "Radar Poland",
+        "description_de": "",
+        "description_en": "Polish radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 144.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.005,
+            "resolution_lat": 0.01,
+            "south": 48.18,
+            "west": 12.13,
+            "north": 56.4,
+            "east": 25.49
+        }
+    },
+    {
+        "identifier": "es-radar",
+        "name": "Radar Spain",
+        "description_de": "",
+        "description_en": "Spanish radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 144.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.005,
+            "resolution_lat": 0.005,
+            "south": 34.222,
+            "west": -11.737,
+            "north": 45.816,
+            "east": 5.802
+        }
+    },
+    {
+        "identifier": "se-radar",
+        "name": "Radar Sweden",
+        "description_de": "",
+        "description_en": "Swedish radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 54.1,
+            "west": 8.75,
+            "north": 69.86,
+            "east": 27.11
+        }
+    },
+    {
+        "identifier": "mch-radar",
+        "name": "Radar Switzerland",
+        "description_de": "",
+        "description_en": "Swiss radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.00897324,
+            "resolution_lat": 0.0123935,
+            "south": 43.63,
+            "west": 3.169,
+            "north": 49.363,
+            "east": 11.955
+        }
+    },
+    {
+        "identifier": "ukmo-500m-radar",
+        "name": "Radar UK",
+        "description_de": "",
+        "description_en": "UK radar composite",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 288.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.00449827,
+            "resolution_lat": 0.00665883,
+            "south": 47.5,
+            "west": -12.5,
+            "north": 60.5,
+            "east": 4.5
+        }
+    },
+    {
+        "identifier": "noaa-1k-radar",
+        "name": "Radar U.S.",
+        "description_de": "",
+        "description_en": "U.S. radar composite covering CONUS",
+        "type": "radar",
+        "num_clusters": null,
+        "num_ensemble_members": null,
+        "updates_per_day": 144.0,
+        "lead_time": 2.0,
+        "bounding_box": {
+            "resolution_lng": 0.01,
+            "resolution_lat": 0.01,
+            "south": 20.005,
+            "west": -129.995,
+            "north": 54.995,
+            "east": -60.005
+        }
+    }
+]
