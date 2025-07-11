@@ -14,6 +14,7 @@ export interface Database {
           version: number
           current_version: number
           is_active: boolean
+          prompt_type: string
           created_by: string | null
           created_at: string
           updated_at: string
@@ -30,6 +31,7 @@ export interface Database {
           version?: number
           current_version?: number
           is_active?: boolean
+          prompt_type?: string
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -46,6 +48,7 @@ export interface Database {
           version?: number
           current_version?: number
           is_active?: boolean
+          prompt_type?: string
           created_by?: string | null
           updated_at?: string
         }
@@ -242,6 +245,108 @@ export interface Database {
           created_at?: string
         }
       }
+      evaluation_test_cases: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          user_prompt: string
+          expected_json: any
+          is_active: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          user_prompt: string
+          expected_json: any
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          user_prompt?: string
+          expected_json?: any
+          is_active?: boolean
+          created_by?: string | null
+          updated_at?: string
+        }
+      }
+      batch_evaluation_runs: {
+        Row: {
+          id: string
+          name: string | null
+          prompt_id: string
+          model_id: string
+          judge_prompt_id: string | null
+          judge_model_id: string | null
+          total_test_cases: number
+          completed_test_cases: number
+          average_score: number | null
+          status: string
+          started_by: string | null
+          started_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          name?: string | null
+          prompt_id: string
+          model_id: string
+          judge_prompt_id?: string | null
+          judge_model_id?: string | null
+          total_test_cases: number
+          completed_test_cases?: number
+          average_score?: number | null
+          status?: string
+          started_by?: string | null
+          started_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | null
+          completed_test_cases?: number
+          average_score?: number | null
+          status?: string
+          completed_at?: string | null
+        }
+      }
+      batch_evaluation_results: {
+        Row: {
+          id: string
+          batch_run_id: string
+          test_case_id: string
+          generation_result_id: string | null
+          comparison_score: number | null
+          comparison_details: string | null
+          judge_model_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          batch_run_id: string
+          test_case_id: string
+          generation_result_id?: string | null
+          comparison_score?: number | null
+          comparison_details?: string | null
+          judge_model_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          comparison_score?: number | null
+          comparison_details?: string | null
+          judge_model_id?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -276,6 +381,18 @@ export type GenerationResultUpdate = Database['public']['Tables']['generation_re
 
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row']
 
+export type EvaluationTestCase = Database['public']['Tables']['evaluation_test_cases']['Row']
+export type EvaluationTestCaseInsert = Database['public']['Tables']['evaluation_test_cases']['Insert']
+export type EvaluationTestCaseUpdate = Database['public']['Tables']['evaluation_test_cases']['Update']
+
+export type BatchEvaluationRun = Database['public']['Tables']['batch_evaluation_runs']['Row']
+export type BatchEvaluationRunInsert = Database['public']['Tables']['batch_evaluation_runs']['Insert']
+export type BatchEvaluationRunUpdate = Database['public']['Tables']['batch_evaluation_runs']['Update']
+
+export type BatchEvaluationResult = Database['public']['Tables']['batch_evaluation_results']['Row']
+export type BatchEvaluationResultInsert = Database['public']['Tables']['batch_evaluation_results']['Insert']
+export type BatchEvaluationResultUpdate = Database['public']['Tables']['batch_evaluation_results']['Update']
+
 // Request/Response types for API operations
 export interface CreateUserInputRequest {
   text: string;
@@ -301,6 +418,7 @@ export interface CreatePromptRequest {
   json_prefix?: string;
   json_suffix?: string;
   use_placeholder?: boolean;
+  prompt_type?: PromptType;
 }
 
 export interface UpdatePromptRequest extends Partial<CreatePromptRequest> {
@@ -439,4 +557,44 @@ export interface GenerationError {
   error_type: 'timeout' | 'rate_limit' | 'auth' | 'invalid_response' | 'unknown';
   message: string;
   retryable: boolean;
-} 
+}
+
+// Batch evaluation specific types
+export type BatchEvaluationStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface BatchEvaluationProgress {
+  run_id: string;
+  status: BatchEvaluationStatus;
+  completed_test_cases: number;
+  total_test_cases: number;
+  current_test_case?: string;
+  average_score?: number;
+  error_message?: string;
+  estimated_time_remaining?: number;
+}
+
+export interface BatchEvaluationSummary {
+  run_id: string;
+  prompt_name: string;
+  model_name: string;
+  total_test_cases: number;
+  completed_test_cases: number;
+  average_score: number | null;
+  status: BatchEvaluationStatus;
+  started_at: string;
+  completed_at: string | null;
+  duration_ms?: number;
+  results: BatchEvaluationResult[];
+}
+
+export interface StartBatchEvaluationRequest {
+  prompt_id: string;
+  model_id: string;
+  judge_prompt_id?: string; // If not provided, uses default judge prompt
+  judge_model_id?: string; // If not provided, uses default judge model
+  test_case_ids?: string[]; // If empty, runs all active test cases
+  name?: string;
+}
+
+// Prompt type enum
+export type PromptType = 'generation' | 'judge'; 

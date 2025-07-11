@@ -4,6 +4,8 @@ import { SignUpForm } from './components/auth/SignUpForm'
 import { GenerationForm } from './components/generation/GenerationForm'
 import { GenerationsView } from './components/generation/GenerationsView'
 import { EvaluationDisplay } from './components/evaluation/EvaluationDisplay'
+import { EvaluationComparisonPanel } from './components/evaluation/EvaluationComparisonPanel'
+import { TestCaseManager } from './components/evaluation/TestCaseManager'
 import { OverviewPage } from './components/OverviewPage'
 import { AuthService } from './services/auth/AuthService'
 
@@ -59,7 +61,8 @@ function App() {
     template_text: '',
     json_prefix: '',
     json_suffix: '',
-    use_placeholder: false
+    use_placeholder: false,
+    prompt_type: 'generation' as 'generation' | 'judge'
   })
 
   // Check authentication status on app load
@@ -871,9 +874,9 @@ function App() {
           name: promptForm.name,
           description: promptForm.description || undefined,
           template_text: promptForm.template_text,
-          json_prefix: promptForm.json_prefix || undefined,
-          json_suffix: promptForm.json_suffix || undefined,
-          use_placeholder: promptForm.use_placeholder
+          json_prefix: promptForm.prompt_type === 'generation' ? (promptForm.json_prefix || undefined) : undefined,
+          json_suffix: promptForm.prompt_type === 'generation' ? (promptForm.json_suffix || undefined) : undefined,
+          use_placeholder: promptForm.prompt_type === 'generation' ? promptForm.use_placeholder : true
         })
       } else {
         // Create new prompt
@@ -881,9 +884,10 @@ function App() {
           name: promptForm.name,
           description: promptForm.description || undefined,
           template_text: promptForm.template_text,
-          json_prefix: promptForm.json_prefix || undefined,
-          json_suffix: promptForm.json_suffix || undefined,
-          use_placeholder: promptForm.use_placeholder
+          json_prefix: promptForm.prompt_type === 'generation' ? (promptForm.json_prefix || undefined) : undefined,
+          json_suffix: promptForm.prompt_type === 'generation' ? (promptForm.json_suffix || undefined) : undefined,
+          use_placeholder: promptForm.prompt_type === 'generation' ? promptForm.use_placeholder : true, // Judge prompts always use placeholders
+          prompt_type: promptForm.prompt_type
         })
       }
       
@@ -993,7 +997,7 @@ function App() {
   }
 
   // Prompt validation functions
-  const validatePromptTemplate = (templateText: string, usePlaceholder: boolean): { errors: string[], warnings: string[] } => {
+  const validatePromptTemplate = (templateText: string, usePlaceholder: boolean, promptType: 'generation' | 'judge' = 'generation'): { errors: string[], warnings: string[] } => {
     const errors: string[] = []
     const warnings: string[] = []
     
@@ -1004,14 +1008,29 @@ function App() {
       return { errors, warnings }
     }
     
-    // Check for required {{user_input}} or {{output}} placeholder when use_placeholder is true
-    if (usePlaceholder) {
-      if (!trimmedText.includes('{{user_input}}') && !trimmedText.includes('{{output}}')) {
-        errors.push('Template must include {{user_input}} placeholder when "Use placeholder" is enabled')
+    if (promptType === 'generation') {
+      // Check for required {{user_input}} or {{output}} placeholder when use_placeholder is true
+      if (usePlaceholder) {
+        if (!trimmedText.includes('{{user_input}}') && !trimmedText.includes('{{output}}')) {
+          errors.push('Template must include {{user_input}} placeholder when "Use placeholder" is enabled')
+        }
+      } else {
+        if (trimmedText.includes('{{user_input}}') || trimmedText.includes('{{output}}')) {
+          warnings.push('Template contains user input placeholder but "Use placeholder" is not enabled')
+        }
       }
-    } else {
-      if (trimmedText.includes('{{user_input}}') || trimmedText.includes('{{output}}')) {
-        warnings.push('Template contains user input placeholder but "Use placeholder" is not enabled')
+    } else if (promptType === 'judge') {
+      // For judge prompts, check for required evaluation placeholders
+      const requiredPlaceholders = ['{{user_input}}', '{{expected_json}}', '{{generated_json}}']
+      const missingPlaceholders = requiredPlaceholders.filter(placeholder => !trimmedText.includes(placeholder))
+      
+      if (missingPlaceholders.length > 0) {
+        errors.push(`Judge template must include: ${missingPlaceholders.join(', ')} placeholders`)
+      }
+      
+      // Check for proper response format guidance
+      if (!trimmedText.includes('SCORE:') || !trimmedText.includes('DETAILS:')) {
+        warnings.push('Judge template should include SCORE: and DETAILS: format guidance for consistent responses')
       }
     }
     
@@ -1101,7 +1120,8 @@ function App() {
         template_text: prompt.template_text || '',
         json_prefix: prompt.json_prefix || '',
         json_suffix: prompt.json_suffix || '',
-        use_placeholder: prompt.use_placeholder || false
+        use_placeholder: prompt.use_placeholder || false,
+        prompt_type: (prompt.prompt_type as 'generation' | 'judge') || 'generation'
       }
       
       console.log('Initializing prompt form:', {
@@ -1129,7 +1149,8 @@ function App() {
         template_text: '',
         json_prefix: '',
         json_suffix: '',
-        use_placeholder: false
+        use_placeholder: false,
+        prompt_type: 'generation'
       })
       setIsInitializingForm(false)
     }
@@ -1143,8 +1164,11 @@ function App() {
       return true
     }
     
-    const templateValidation = validatePromptTemplate(promptForm.template_text, promptForm.use_placeholder)
-    const jsonValidation = validateJsonStructure(promptForm.json_prefix, promptForm.json_suffix)
+    const templateValidation = validatePromptTemplate(promptForm.template_text, promptForm.use_placeholder, promptForm.prompt_type)
+    // Only validate JSON structure for generation prompts
+    const jsonValidation = promptForm.prompt_type === 'generation' 
+      ? validateJsonStructure(promptForm.json_prefix, promptForm.json_suffix)
+      : { errors: [], warnings: [] }
     
     const allErrors = [...templateValidation.errors, ...jsonValidation.errors]
     const allWarnings = [...templateValidation.warnings, ...jsonValidation.warnings]
@@ -1450,6 +1474,16 @@ function App() {
                         </div>
                       ))}
                     </div>
+
+                    {/* Batch Evaluation Panel */}
+                    {generationResults.length > 0 && (
+                      <div className="mt-8">
+                        <EvaluationComparisonPanel 
+                          results={generationResults}
+                          className="border-t border-gray-200 pt-6"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1469,6 +1503,11 @@ function App() {
                 <p className="text-blue-700">
                   This is a preview of the prompt library interface. In production, this would connect to Supabase for full CRUD operations with versioning and collaboration features.
                 </p>
+              </div>
+              
+              {/* Test Case Management */}
+              <div className="mb-6">
+                <TestCaseManager />
               </div>
               <div className="space-y-4">
                 {isLoadingPrompts ? (
@@ -1646,6 +1685,23 @@ function App() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Prompt Type <span className="text-red-500">*</span>
+                    </label>
+                    <select 
+                      className="input-field" 
+                      value={promptForm.prompt_type}
+                      onChange={(e) => setPromptForm(prev => ({ ...prev, prompt_type: e.target.value as 'generation' | 'judge' }))}
+                    >
+                      <option value="generation">Generation (for creating MetX dashboards)</option>
+                      <option value="judge">Judge (for evaluating generated outputs)</option>
+                    </select>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Generation prompts create weather dashboards. Judge prompts evaluate the quality of generated outputs.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Template Text <span className="text-red-500">*</span>
                     </label>
                     <textarea 
@@ -1659,28 +1715,34 @@ function App() {
                       placeholder="Generate a comprehensive weather dashboard for {{user_input}}..."
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                                              Use <code>{'{{user_input}}'}</code> to include the user's weather request. Enable "Use placeholder" below.
+                      {promptForm.prompt_type === 'generation' 
+                        ? "Use {{user_input}} to include the user's weather request. Enable 'Use placeholder' below."
+                        : "Use {{user_input}}, {{expected_json}}, and {{generated_json}} placeholders for evaluation prompts."
+                      }
                     </p>
                   </div>
                   
-                  <div>
-                    <label className="flex items-center space-x-3 mb-4">
-                      <input
-                        type="checkbox"
-                        checked={promptForm.use_placeholder}
-                        onChange={(e) => {
-                          setPromptForm(prev => ({ ...prev, use_placeholder: e.target.checked }))
-                          // useEffect will handle validation automatically
-                        }}
-                        className="rounded"
-                      />
-                      <span className="text-sm text-gray-700">
-                        Use <code>{'{{user_input}}'}</code> placeholder (replaces user input in template)
-                      </span>
-                    </label>
-                  </div>
+                  {promptForm.prompt_type === 'generation' && (
+                    <div>
+                      <label className="flex items-center space-x-3 mb-4">
+                        <input
+                          type="checkbox"
+                          checked={promptForm.use_placeholder}
+                          onChange={(e) => {
+                            setPromptForm(prev => ({ ...prev, use_placeholder: e.target.checked }))
+                            // useEffect will handle validation automatically
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">
+                          Use <code>{'{{user_input}}'}</code> placeholder (replaces user input in template)
+                        </span>
+                      </label>
+                    </div>
+                  )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {promptForm.prompt_type === 'generation' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">JSON Prefix</label>
                       <textarea 
@@ -1711,7 +1773,8 @@ function App() {
                         JSON structure that comes after the generated layers
                       </p>
                     </div>
-                  </div>
+                    </div>
+                  )}
                   
                   {/* Validation Display */}
                   {(promptValidation.errors.length > 0 || promptValidation.warnings.length > 0) && (

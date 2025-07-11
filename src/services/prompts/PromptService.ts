@@ -25,6 +25,30 @@ export class PromptService {
   }
 
   /**
+   * Fetch prompts by type (generation or judge)
+   */
+  static async fetchPromptsByType(promptType: 'generation' | 'judge'): Promise<Prompt[]> {
+    try {
+      const { data, error } = await supabase
+        .from('prompts')
+        .select('*')
+        .eq('prompt_type', promptType)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching prompts by type:', error)
+        throw new Error(`Failed to fetch prompts: ${error.message}`)
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Error in fetchPromptsByType:', error)
+      throw error
+    }
+  }
+
+  /**
    * Fetch a single prompt by ID
    */
   static async fetchPromptById(id: string): Promise<Prompt | null> {

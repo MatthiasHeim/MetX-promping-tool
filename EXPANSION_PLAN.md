@@ -66,12 +66,14 @@ This platform will be enhanced with a production-ready API.
     -   **Internal Workflow:**
         1.  Authenticate the request via API key.
         2.  Query the `prompts` and `models` tables in Supabase for the records marked as `is_production = true`.
-        3.  Construct the final prompt to the LLM using the user's input and the production prompt template.
-        4.  Send the request to the production LLM.
-        5.  Receive the LLM response (the `layers` array content).
-        6.  Process the response through `JsonValidator.validateJson()`.
-        7.  Retrieve the `json_prefix` and `json_suffix` from the production prompt in the database.
-        8.  Combine prefix, validated layers, and suffix to form the final `metx.json`.
+        3.  **Parallel Processing:** Execute two simultaneous LLM calls:
+            -   **Layer Generation:** Construct the final prompt using the user's input and production prompt template. Send to the production LLM to generate the `layers` array content.
+            -   **Location Extraction:** Send the user's prompt to a location extraction LLM (optimized for geographic reasoning) to extract coordinates and zoom level.
+        4.  Process the layer generation response through `JsonValidator.validateJson()`.
+        5.  Process the location extraction response and validate coordinates. If location extraction fails or has low confidence, fall back to a sensible default viewport (e.g., Central Europe).
+        6.  Retrieve the `json_prefix` and `json_suffix` from the production prompt in the database.
+        7.  Inject the extracted (or default) viewport configuration into the appropriate section of the JSON prefix.
+        8.  Combine prefix (with viewport), validated layers, and suffix to form the final `metx.json`.
         9.  Return the final JSON in the response.
 
 ### 3.3. Meteomatics Frontend
@@ -86,7 +88,15 @@ This platform will be enhanced with a production-ready API.
 ### Phase 1: Core Dashboard Generation
 
 1.  **Create API Endpoint:** Implement the `POST /api/v1/dashboard/generate` endpoint as specified above. This will involve creating the necessary routing and controller logic within the application.
-2.  **Add "Production" Selection to UI:**
+
+2.  **Implement Parallel Location Extraction:**
+    -   **Location Service:** Create a new `LocationService` class to handle geographic extraction from natural language prompts.
+    -   **LLM Configuration:** Configure a separate, optimized LLM call for location extraction (e.g., GPT-4o-mini with temperature=0 for deterministic geographic results).
+    -   **Caching Strategy:** Implement location caching for common geographic queries to reduce costs and improve performance.
+    -   **Fallback Logic:** Define sensible default viewports for when location extraction fails (e.g., Central Europe at zoom level 4).
+    -   **Validation:** Add coordinate validation to ensure extracted locations are within valid geographic bounds.
+
+3.  **Add "Production" Selection to UI:**
     -   **Database:** Add a new boolean column, `is_production`, to the `prompts` and `models` tables in Supabase. Ensure only one prompt and one model can be marked as production at any given time using database constraints or application logic.
     -   **UI:** In the frontend, add a button or toggle next to each prompt and model in their respective lists. This control will allow an admin user to set a specific prompt/model combination as the "production" version. This action should trigger an API call to update the `is_production` flags in the database.
 
@@ -100,7 +110,7 @@ This platform will be enhanced with a production-ready API.
         1.  A user initiates an evaluation run from the UI.
         2.  The system iterates through all entries in `test_cases`.
         3.  For each case, it generates a `metx.json` using the prompt/model being tested.
-        4.  It then makes a second LLM call to a "judge" model (e.g., GPT-4o). The judge prompt will ask it to compare the `generated_json` against the `expected_json` and provide a similarity score (e.g., 1-10) and a textual description of any discrepancies.
+        4.  It then makes a second LLM call to a "judge" model (e.g., Claude 4 Sonnet). The judge prompt will ask it to compare the `generated_json` against the `expected_json` and provide a similarity score (e.g., 1-10) and a textual description of any discrepancies.
         5.  The results are stored in the `evaluation_results` table.
     -   **UI:** Create a new section in the application to manage test cases and view a dashboard of evaluation results, comparing different prompts/models side-by-side.
 
@@ -116,7 +126,68 @@ This platform will be enhanced with a production-ready API.
         ```
     -   **Implementation:** This endpoint will require a more sophisticated prompt that instructs the LLM to act as an editor rather than a generator, taking the existing JSON and the modification instruction as input and outputting a new, complete `metx.json`.
 
-## 5. Recommended UX Flow (Chatbot)
+## 5. Location Extraction Technical Details
+
+### 5.1. Location Extraction LLM Prompt Template
+
+```
+Extract geographic location and appropriate zoom level for this weather dashboard request:
+"${userPrompt}"
+
+Return JSON format:
+{
+  "location_found": true/false,
+  "center_lat": 46.8182,
+  "center_lng": 8.2275, 
+  "zoom": 7,
+  "confidence": "high/medium/low",
+  "reasoning": "User requested Switzerland, centered on geographic center"
+}
+
+Zoom level guidelines:
+- Country level: 4-5 (e.g., "France", "Germany")
+- Regional level: 6-7 (e.g., "Central Europe", "Swiss Alps")
+- City/local level: 8-10 (e.g., "Zurich", "Paris")
+
+If no clear location is mentioned, return location_found: false.
+If location is ambiguous (e.g., "Paris"), choose the most prominent/likely option and note in reasoning.
+```
+
+### 5.2. Cost Optimization Strategy
+
+**Model Selection:**
+- **Location Extraction:** GPT-4o-mini (faster, cheaper, sufficient for geographic tasks)
+- **Layer Generation:** GPT-4o or higher (complex JSON generation requires more capability)
+
+**Caching Implementation:**
+```typescript
+const commonLocations = {
+  "europe": { center_lat: 54.5260, center_lng: 15.2551, zoom: 4 },
+  "switzerland": { center_lat: 46.8182, center_lng: 8.2275, zoom: 7 },
+  "france": { center_lat: 46.6034, center_lng: 1.8883, zoom: 5 },
+  "germany": { center_lat: 51.1657, center_lng: 10.4515, zoom: 6 }
+};
+```
+
+### 5.3. Error Handling & Fallbacks
+
+1. **Parallel Execution Failures:**
+   - If location extraction fails but layer generation succeeds → Use default viewport
+   - If layer generation fails but location extraction succeeds → Return error with location context
+   - If both fail → Return comprehensive error message
+
+2. **Default Viewport Configuration:**
+   ```json
+   {
+     "kind": "ViewportFull",
+     "center_lng": 10.0,
+     "center_lat": 50.0,
+     "zoom": 4,
+     "reasoning": "Default Central Europe viewport"
+   }
+   ```
+
+## 6. Recommended UX Flow (Chatbot)
 
 **Objective:** Ensure the user feels in control and the generation process is transparent.
 

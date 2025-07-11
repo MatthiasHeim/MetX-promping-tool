@@ -5,6 +5,7 @@ import { ModelService } from '../../services/models/ModelService'
 import { UserInputService } from '../../services/inputs/UserInputService'
 import { AuthService } from '../../services/auth/AuthService'
 import { PromptVersionHistory } from './PromptVersionHistory'
+import { EvaluationComparisonPanel } from '../evaluation/EvaluationComparisonPanel'
 import type { GenerationResult, Prompt, Model, UserInput } from '../../types/database'
 
 interface EnrichedGenerationResult extends GenerationResult {
@@ -55,6 +56,9 @@ export const GenerationsView: React.FC = () => {
     rating: 0,
     comment: ''
   })
+
+  // State for evaluation panel
+  const [showEvaluationPanel, setShowEvaluationPanel] = useState(false)
 
   useEffect(() => {
     // Load data regardless of current user since we want to show all generations
@@ -468,13 +472,25 @@ export const GenerationsView: React.FC = () => {
             {filteredGenerations.length} of {generations.length} generations
           </p>
         </div>
-        <button 
-          onClick={loadData}
-          className="btn-secondary"
-          disabled={isLoading}
-        >
-          Refresh
-        </button>
+        <div className="flex space-x-3">
+          <button 
+            onClick={() => setShowEvaluationPanel(!showEvaluationPanel)}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              showEvaluationPanel
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+            }`}
+          >
+            {showEvaluationPanel ? 'Hide Evaluations' : 'Run Batch Evaluation'}
+          </button>
+          <button 
+            onClick={loadData}
+            className="btn-secondary"
+            disabled={isLoading}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Filters and Sorting */}
@@ -600,6 +616,14 @@ export const GenerationsView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Evaluation Panel */}
+      {showEvaluationPanel && (
+        <EvaluationComparisonPanel 
+          results={filteredGenerations}
+          className="mb-6"
+        />
+      )}
 
       {/* Generations Grid */}
       {filteredGenerations.length === 0 ? (
