@@ -38,6 +38,8 @@ ALTER TABLE prompts ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 -- Create function to automatically create a prompt version when a prompt is updated
 CREATE OR REPLACE FUNCTION create_prompt_version()
 RETURNS TRIGGER AS $$
+DECLARE
+    next_version INTEGER;
 BEGIN
     -- Only create a version if this is an update (not insert)
     IF TG_OP = 'UPDATE' THEN
@@ -49,16 +51,22 @@ BEGIN
             OLD.json_suffix IS DISTINCT FROM NEW.json_suffix OR
             OLD.use_placeholder IS DISTINCT FROM NEW.use_placeholder) THEN
             
-            -- Increment the version number
-            NEW.version = OLD.version + 1;
-            NEW.current_version = NEW.version;
+            -- Get the next version number safely by finding the maximum existing version
+            SELECT COALESCE(MAX(version_number), 0) + 1 
+            INTO next_version
+            FROM prompt_versions 
+            WHERE prompt_id = NEW.id;
+            
+            -- Update the version number
+            NEW.version = next_version;
+            NEW.current_version = next_version;
             
             -- Deactivate all previous versions
             UPDATE prompt_versions 
             SET is_active = false 
             WHERE prompt_id = NEW.id;
             
-            -- Create a new version record
+            -- Create a new version record with the calculated version number
             INSERT INTO prompt_versions (
                 prompt_id,
                 version_number,
@@ -72,7 +80,7 @@ BEGIN
                 is_active
             ) VALUES (
                 NEW.id,
-                NEW.version,
+                next_version,
                 NEW.name,
                 NEW.description,
                 NEW.template_text,
@@ -98,7 +106,7 @@ BEGIN
             is_active
         ) VALUES (
             NEW.id,
-            NEW.version,
+            COALESCE(NEW.version, 1),
             NEW.name,
             NEW.description,
             NEW.template_text,

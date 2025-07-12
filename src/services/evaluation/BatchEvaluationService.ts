@@ -1,9 +1,10 @@
 import { supabase } from '../../lib/supabase'
-import { UserInputService } from '../inputs/UserInputService'
 import { EvaluationTestCaseService } from './EvaluationTestCaseService'
 import { PromptService } from '../prompts/PromptService'
 import { ModelService } from '../models/ModelService'
 import { OpenAIService } from '../generation/OpenAIService'
+import { OpenRouterService } from '../generation/OpenRouterService'
+import { GenerationService } from '../generation/GenerationService'
 import type { 
   BatchEvaluationRun, 
   BatchEvaluationRunUpdate,
@@ -119,7 +120,7 @@ export class BatchEvaluationService {
 
           // Compare with expected JSON using judge model
           const comparisonResult = await this.compareWithExpectedJson(
-            generationResult.final_json,
+            generationResult.generated_json,
             testCase.expected_json,
             testCase.user_prompt,
             judgePromptId,
@@ -130,18 +131,24 @@ export class BatchEvaluationService {
           const batchResult = await this.createBatchEvaluationResult({
             batch_run_id: batchRunId,
             test_case_id: testCase.id,
-            generation_result_id: generationResult.id,
+            generation_result_id: null, // No actual generation result for test evaluations
             comparison_score: comparisonResult.score,
             comparison_details: comparisonResult.details,
-            judge_model_id: judgeModelId || 'claude-4-sonnet' // Use configured or default judge model
+            judge_model_id: judgeModelId || 'google/gemini-2.5-flash', // Use configured or default judge model
+            generated_json: generationResult.generated_json
           })
 
           results.push(batchResult)
-          totalScore += comparisonResult.score
+          
+          // Only include valid scores (> 0) in average calculation
+          if (comparisonResult.score > 0) {
+            totalScore += comparisonResult.score
+          }
           completedCount++
 
-          // Update progress
-          const averageScore = totalScore / completedCount
+          // Calculate average only from valid scores
+          const validScores = results.filter(r => r.comparison_score !== null && r.comparison_score > 0).length
+          const averageScore = validScores > 0 ? totalScore / validScores : null
           await this.updateBatchRun(batchRunId, {
             completed_test_cases: completedCount,
             average_score: averageScore
@@ -156,14 +163,16 @@ export class BatchEvaluationService {
             generation_result_id: null,
             comparison_score: 0,
             comparison_details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            judge_model_id: null
+            judge_model_id: null,
+            generated_json: null
           })
           completedCount++
         }
       }
 
-      // Mark as completed
-      const finalAverageScore = results.length > 0 ? totalScore / results.length : 0
+      // Mark as completed - calculate average only from valid scores
+      const validResults = results.filter(r => r.comparison_score !== null && r.comparison_score > 0)
+      const finalAverageScore = validResults.length > 0 ? totalScore / validResults.length : null
       await this.updateBatchRun(batchRunId, {
         status: 'completed',
         completed_test_cases: completedCount,
@@ -182,33 +191,51 @@ export class BatchEvaluationService {
    */
   private static async generateResultForTestCase(
     testCase: EvaluationTestCase,
-    _prompt: Prompt,
-    _model: Model,
-    userId: string
+    prompt: Prompt,
+    model: Model,
+    _userId: string
   ): Promise<any> {
-    // Create user input (for future use)
-    await UserInputService.createUserInput(
-      userId,
-      testCase.user_prompt
-    )
+    try {
+      // Process the prompt template with the test case user prompt
+      const processedPrompt = GenerationService.processPromptTemplate(prompt.template_text, testCase.user_prompt)
+      
+      // Generate using the appropriate service based on model provider
+      let response;
+      if (model.provider === 'openrouter') {
+        response = await OpenRouterService.generateCompletion(processedPrompt, model)
+      } else {
+        response = await OpenAIService.generateCompletion(processedPrompt, model)
+      }
 
-    // For now, create a simple generation result simulation
-    // In a real implementation, this would use the proper generation pipeline
-    const mockResult = {
-      id: 'mock-result-id',
-      final_json: {
-        layers: [
-          {
-            kind: "BackgroundMapDescription",
-            style: "topographique",
-            opacity: 1,
-            show: true
-          }
-        ]
+      if (!response.success || !response.content) {
+        throw new Error(`Generation failed: ${response.error?.message || 'No content generated'}`)
+      }
+
+      // Parse the JSON from the response
+      let generatedJson;
+      try {
+        generatedJson = JSON.parse(response.content)
+      } catch (parseError) {
+        console.warn('Failed to parse generated JSON, using raw content:', parseError)
+        generatedJson = { raw_content: response.content }
+      }
+
+      return {
+        id: `generated-result-${testCase.id}`,
+        generated_json: generatedJson,
+        user_prompt: testCase.user_prompt,
+        raw_content: response.content
+      }
+    } catch (error) {
+      console.error('Error generating result for test case:', error)
+      // Return a failed generation result
+      return {
+        id: `failed-result-${testCase.id}`,
+        generated_json: null,
+        user_prompt: testCase.user_prompt,
+        error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
-
-    return mockResult
   }
 
   /**
@@ -273,10 +300,10 @@ DETAILS: [explanation]
       } else {
         // Default judge model
         judgeModel = {
-          id: 'claude-4-sonnet',
-          name: 'Claude 4 Sonnet',
-          provider: 'anthropic',
-          price_per_1k_tokens: 0.015,
+          id: 'google/gemini-2.5-flash',
+          name: 'Gemini 2.5 Flash',
+          provider: 'openrouter',
+          price_per_1k_tokens: 0.0001, // Gemini Flash pricing
           is_pinned: false
         }
       }
@@ -287,20 +314,108 @@ DETAILS: [explanation]
         .replace(/\{\{expected_json\}\}/g, JSON.stringify(expectedJson, null, 2))
         .replace(/\{\{generated_json\}\}/g, JSON.stringify(generatedJson, null, 2))
 
-      const response = await OpenAIService.generateCompletion(
-        processedPrompt,
-        judgeModel
-      )
+      // Route to appropriate service based on model provider (same logic as GenerationService)
+      let response;
+      if (judgeModel.provider === 'openrouter') {
+        response = await OpenRouterService.generateCompletion(processedPrompt, judgeModel)
+      } else {
+        // Default to OpenAI service for 'openai' provider and others
+        response = await OpenAIService.generateCompletion(processedPrompt, judgeModel)
+      }
 
-      // Parse the response
+      // Parse the response - handle both XML and JSON formats
       const responseText = response.content || ''
-      const scoreMatch = responseText.match(/SCORE:\s*(\d+)/)
-      const detailsMatch = responseText.match(/DETAILS:\s*(.+)/s)
+      
+      // Enhanced logging for debugging
+      console.log('=== JUDGE MODEL DEBUG ===')
+      console.log('Full response length:', responseText.length)
+      console.log('Full response content:', responseText)
+      console.log('=========================')
+      
+      let score: number | null = null // Use null to indicate parsing failure
+      let details = 'No explanation provided'
+      let parseSuccess = false
 
-      const score = scoreMatch ? parseInt(scoreMatch[1]) : 5 // Default to middle score if parsing fails
-      const details = detailsMatch ? detailsMatch[1].trim() : responseText
+      // First try XML format
+      const scoreMatchXML = responseText.match(/<score>(\d+)<\/score>/i)
+      const detailsMatchXML = responseText.match(/<details>(.*?)<\/details>/si)
 
-      return { score, details }
+      if (scoreMatchXML && detailsMatchXML) {
+        score = parseInt(scoreMatchXML[1])
+        details = detailsMatchXML[1].trim()
+        parseSuccess = true
+        console.log('✅ Parsed XML format - Score:', score, 'Details length:', details.length)
+      } else {
+        // Try multiple JSON formats
+        try {
+          const jsonMatch = responseText.match(/[\[\{][\s\S]*[\]\}]/);
+          if (jsonMatch) {
+            const parsedJson = JSON.parse(jsonMatch[0]);
+            
+            // Format 1: Standard {score, details}
+            if (typeof parsedJson.score === 'number' && typeof parsedJson.details === 'string') {
+              score = parsedJson.score;
+              details = parsedJson.details;
+              parseSuccess = true;
+              console.log('✅ Parsed JSON format (standard) - Score:', score, 'Details length:', details.length);
+            }
+            // Format 2: Alternative field names {similarity_score, explanation}
+            else if (typeof parsedJson.similarity_score === 'number' && typeof parsedJson.explanation === 'string') {
+              score = parsedJson.similarity_score;
+              details = parsedJson.explanation;
+              parseSuccess = true;
+              console.log('✅ Parsed JSON format (similarity_score/explanation) - Score:', score, 'Details length:', details.length);
+            }
+            // Format 3: Nested array format [{"evaluation": {"score": ..., "details": ...}}]
+            else if (Array.isArray(parsedJson) && parsedJson.length > 0 && parsedJson[0].evaluation) {
+              const evaluation = parsedJson[0].evaluation;
+              if (typeof evaluation.score === 'number' && typeof evaluation.details === 'string') {
+                score = evaluation.score;
+                details = evaluation.details;
+                parseSuccess = true;
+                console.log('✅ Parsed JSON format (nested array) - Score:', score, 'Details length:', details.length);
+              }
+            }
+            // Format 4: Direct nested {evaluation: {score, details}}
+            else if (parsedJson.evaluation && typeof parsedJson.evaluation.score === 'number' && typeof parsedJson.evaluation.details === 'string') {
+              score = parsedJson.evaluation.score;
+              details = parsedJson.evaluation.details;
+              parseSuccess = true;
+              console.log('✅ Parsed JSON format (nested evaluation) - Score:', score, 'Details length:', details.length);
+            }
+          }
+        } catch (jsonError) {
+          console.log('❌ JSON parsing failed:', jsonError);
+        }
+
+        // Fallback patterns if JSON parsing didn't work
+        if (!parseSuccess) {
+          const scorePattern = responseText.match(/(?:score|similarity_score)[:\s]*(\d+)/i)
+          const detailsPattern = responseText.match(/(?:details|explanation)[:\s]*['"](.*?)['"]/si)
+          
+          if (scorePattern && detailsPattern) {
+            score = parseInt(scorePattern[1])
+            details = detailsPattern[1].trim()
+            parseSuccess = true
+            console.log('✅ Parsed with fallback patterns - Score:', score, 'Details length:', details.length)
+          } else {
+            console.log('❌ All parsing methods failed')
+            // Instead of defaulting to score 5, mark as failed
+            score = null
+            details = `Parsing failed. Raw response: ${responseText.substring(0, 200)}...`
+          }
+        }
+      }
+
+      // Final validation
+      if (score !== null && (score < 1 || score > 10)) {
+        console.log('⚠️ Score out of range, marking as failed:', score)
+        score = null
+        details = `Invalid score (${score}) out of range 1-10. Raw response: ${responseText.substring(0, 200)}...`
+      }
+
+      console.log('Final result - Score:', score, 'Details length:', details.length, 'Parse success:', parseSuccess)
+      return { score: score || 0, details } // Return 0 for failed parsing to distinguish from valid scores
 
     } catch (error) {
       console.error('Error in judge model comparison:', error)
@@ -403,7 +518,7 @@ DETAILS: [explanation]
         .from('batch_evaluation_results')
         .select(`
           *,
-          evaluation_test_cases(name, user_prompt)
+          evaluation_test_cases(name, user_prompt, expected_json)
         `)
         .eq('batch_run_id', runId)
         .order('created_at', { ascending: true })

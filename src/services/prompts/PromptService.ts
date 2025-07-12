@@ -106,10 +106,8 @@ export class PromptService {
   static async updatePrompt(id: string, updates: UpdatePromptRequest): Promise<Prompt> {
     try {
       console.log('PromptService.updatePrompt called with:', { id, updates })
-      console.log('ID type:', typeof id, 'ID length:', id?.length)
       
       // First check if the prompt exists
-      console.log('Checking if prompt exists with ID:', id)
       const existingPrompt = await this.fetchPromptById(id)
       if (!existingPrompt) {
         throw new Error(`Prompt with id ${id} not found`)
@@ -130,60 +128,48 @@ export class PromptService {
       if (updates.use_placeholder !== undefined) updateData.use_placeholder = updates.use_placeholder
       
       console.log('Update data prepared:', updateData)
-      console.log('Update data keys:', Object.keys(updateData))
-      console.log('Update data values preview:', {
-        name: updateData.name,
-        description: updateData.description?.substring(0, 50) + '...',
-        template_text_length: updateData.template_text?.length,
-        json_prefix_length: updateData.json_prefix?.length,
-        json_suffix_length: updateData.json_suffix?.length,
-        use_placeholder: updateData.use_placeholder
-      })
       
-      // Try a simple update first to see if it's a data size issue
-      console.log('Attempting simple update first...')
-      const { data: simpleData, error: simpleError } = await supabase
-        .from('prompts')
-        .update({ name: updateData.name, updated_at: updateData.updated_at })
-        .eq('id', id)
-        .select()
+      // Retry logic for versioning conflicts
+      let retryCount = 0
+      const maxRetries = 3
+      
+      while (retryCount < maxRetries) {
+        try {
+          const { data, error } = await supabase
+            .from('prompts')
+            .update(updateData)
+            .eq('id', id)
+            .select()
+            .single()
 
-      console.log('Simple update result:', { data: simpleData, error: simpleError })
-      
-      if (simpleError) {
-        console.error('Simple update failed:', simpleError)
-      } else if (simpleData && simpleData.length > 0) {
-        console.log('Simple update succeeded, now trying full update...')
-      } else {
-        console.error('Simple update returned no data')
-        throw new Error('Simple update failed - no rows affected')
+          if (error) {
+            // Check if this is a versioning constraint violation
+            if (error.message.includes('duplicate key value violates unique constraint') && 
+                error.message.includes('prompt_versions_prompt_id_version_number_key')) {
+              console.log(`Versioning conflict detected, retry ${retryCount + 1}/${maxRetries}`)
+              retryCount++
+              if (retryCount < maxRetries) {
+                // Wait a bit before retrying
+                await new Promise(resolve => setTimeout(resolve, 100 * retryCount))
+                continue
+              }
+            }
+            throw new Error(`Failed to update prompt: ${error.message}`)
+          }
+
+          console.log('Prompt updated successfully:', data.name)
+          return data
+        } catch (innerError) {
+          if (retryCount >= maxRetries - 1) {
+            throw innerError
+          }
+          retryCount++
+          console.log(`Update failed, retry ${retryCount}/${maxRetries}:`, innerError)
+          await new Promise(resolve => setTimeout(resolve, 100 * retryCount))
+        }
       }
       
-      // Try the update without .single() first to see what happens
-      const { data: allData, error: queryError, count } = await supabase
-        .from('prompts')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-
-      console.log('Update query result:', { data: allData, error: queryError, count })
-      
-      if (queryError) {
-        console.error('Error in update query:', queryError)
-        throw new Error(`Failed to update prompt: ${queryError.message}`)
-      }
-
-      if (!allData || allData.length === 0) {
-        console.error('No rows were updated for ID:', id)
-        throw new Error('No rows were updated - prompt may not exist')
-      }
-
-      if (allData.length > 1) {
-        console.warn('Multiple rows updated:', allData.length)
-      }
-
-      console.log('Prompt updated successfully:', allData[0].name)
-      return allData[0]
+      throw new Error('Failed to update prompt after maximum retries')
     } catch (error) {
       console.error('Error in updatePrompt:', error)
       throw error

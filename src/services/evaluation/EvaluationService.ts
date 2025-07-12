@@ -148,7 +148,7 @@ export class EvaluationService {
     // ALWAYS prioritize final_json if available (complete JSON with prefix/suffix)
     // This is the actual JSON that will be used by MetX
     const jsonToAnalyze = finalJson || generatedJson
-    let isUsingFinalJson = !!finalJson
+    const isUsingFinalJson = !!finalJson
     
     // Check if the JSON is valid first (basic JSON validity)
     let isValidJson = false

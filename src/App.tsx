@@ -5,8 +5,8 @@ import { GenerationForm } from './components/generation/GenerationForm'
 import { GenerationsView } from './components/generation/GenerationsView'
 import { EvaluationDisplay } from './components/evaluation/EvaluationDisplay'
 import { EvaluationComparisonPanel } from './components/evaluation/EvaluationComparisonPanel'
-import { TestCaseManager } from './components/evaluation/TestCaseManager'
 import { OverviewPage } from './components/OverviewPage'
+import { EvaluationPage } from './pages/EvaluationPage'
 import { AuthService } from './services/auth/AuthService'
 
 import { GenerationService } from './services/generation/GenerationService'
@@ -22,7 +22,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false) // Require login
   const [generationResults, setGenerationResults] = useState<any[]>([])
   const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([])
-  const [currentView, setCurrentView] = useState<'overview' | 'generation' | 'generations' | 'prompts' | 'editor'>('overview')
+  const [currentView, setCurrentView] = useState<'overview' | 'generation' | 'generations' | 'prompts' | 'editor' | 'evaluations'>('overview')
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null)
   const [isProcessingResults, setIsProcessingResults] = useState(false)
   const [ratingModal, setRatingModal] = useState<{
@@ -1028,10 +1028,7 @@ function App() {
         errors.push(`Judge template must include: ${missingPlaceholders.join(', ')} placeholders`)
       }
       
-      // Check for proper response format guidance
-      if (!trimmedText.includes('SCORE:') || !trimmedText.includes('DETAILS:')) {
-        warnings.push('Judge template should include SCORE: and DETAILS: format guidance for consistent responses')
-      }
+      // Response format validation removed - enhanced parser handles multiple formats (XML, JSON, fallback patterns)
     }
     
     // Check for other common placeholders that might need attention
@@ -1352,6 +1349,21 @@ function App() {
                   <span>Prompts</span>
                 </div>
               </button>
+              <button
+                onClick={() => setCurrentView('evaluations')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  currentView === 'evaluations'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span>Evaluations</span>
+                </div>
+              </button>
             </nav>
           </div>
         </div>
@@ -1424,10 +1436,27 @@ function App() {
                                 Copy Complete JSON
                               </button>
                               <button 
+                                onClick={() => {
+                                  // Download just the raw layers JSON
+                                  const blob = new Blob([JSON.stringify(result.raw_json, null, 2)], { type: 'application/json' })
+                                  const url = URL.createObjectURL(blob)
+                                  const link = document.createElement('a')
+                                  link.href = url
+                                  link.download = `metx-layers-${result.model_name}-${Date.now()}.json`
+                                  document.body.appendChild(link)
+                                  link.click()
+                                  document.body.removeChild(link)
+                                  URL.revokeObjectURL(url)
+                                }}
+                                className="btn-secondary text-xs"
+                              >
+                                Download Generated Layers
+                              </button>
+                              <button 
                                 onClick={() => handleDownloadJson(result, result.prompt, result.user_input)}
                                 className="btn-secondary text-xs"
                               >
-                                Download Complete JSON
+                                Download Generated Dashboard
                               </button>
                               <button 
                                 onClick={() => handleRateResult(index)}
@@ -1495,6 +1524,11 @@ function App() {
             <GenerationsView />
           )}
 
+          {/* Evaluations View */}
+          {currentView === 'evaluations' && (
+            <EvaluationPage />
+          )}
+
           {/* Prompts View */}
           {currentView === 'prompts' && (
             <div>
@@ -1505,10 +1539,6 @@ function App() {
                 </p>
               </div>
               
-              {/* Test Case Management */}
-              <div className="mb-6">
-                <TestCaseManager />
-              </div>
               <div className="space-y-4">
                 {isLoadingPrompts ? (
                   <div className="flex justify-center py-8">

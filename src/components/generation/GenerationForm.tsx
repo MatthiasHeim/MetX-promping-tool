@@ -159,7 +159,7 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
     try {
       // Create progress tracker
       const userInputId = `temp-${Date.now()}`
-      let currentProgress = GenerationService.createProgressTracker(userInputId, selectedModels.map(m => m.id))
+      const currentProgress = GenerationService.createProgressTracker(userInputId, selectedModels.map(m => m.id))
       setProgress(currentProgress)
       
       // Process prompt and store it for display

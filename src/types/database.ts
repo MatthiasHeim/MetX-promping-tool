@@ -328,6 +328,7 @@ export interface Database {
           comparison_score: number | null
           comparison_details: string | null
           judge_model_id: string | null
+          generated_json: any | null
           created_at: string
         }
         Insert: {
@@ -338,12 +339,14 @@ export interface Database {
           comparison_score?: number | null
           comparison_details?: string | null
           judge_model_id?: string | null
+          generated_json?: any | null
           created_at?: string
         }
         Update: {
           id?: string
           comparison_score?: number | null
           comparison_details?: string | null
+          generated_json?: any | null
           judge_model_id?: string | null
         }
       }

@@ -5,7 +5,6 @@ import { ModelService } from '../../services/models/ModelService'
 import { UserInputService } from '../../services/inputs/UserInputService'
 import { AuthService } from '../../services/auth/AuthService'
 import { PromptVersionHistory } from './PromptVersionHistory'
-import { EvaluationComparisonPanel } from '../evaluation/EvaluationComparisonPanel'
 import type { GenerationResult, Prompt, Model, UserInput } from '../../types/database'
 
 interface EnrichedGenerationResult extends GenerationResult {
@@ -57,8 +56,6 @@ export const GenerationsView: React.FC = () => {
     comment: ''
   })
 
-  // State for evaluation panel
-  const [showEvaluationPanel, setShowEvaluationPanel] = useState(false)
 
   useEffect(() => {
     // Load data regardless of current user since we want to show all generations
@@ -474,16 +471,6 @@ export const GenerationsView: React.FC = () => {
         </div>
         <div className="flex space-x-3">
           <button 
-            onClick={() => setShowEvaluationPanel(!showEvaluationPanel)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              showEvaluationPanel
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-            }`}
-          >
-            {showEvaluationPanel ? 'Hide Evaluations' : 'Run Batch Evaluation'}
-          </button>
-          <button 
             onClick={loadData}
             className="btn-secondary"
             disabled={isLoading}
@@ -617,13 +604,6 @@ export const GenerationsView: React.FC = () => {
         )}
       </div>
 
-      {/* Evaluation Panel */}
-      {showEvaluationPanel && (
-        <EvaluationComparisonPanel 
-          results={filteredGenerations}
-          className="mb-6"
-        />
-      )}
 
       {/* Generations Grid */}
       {filteredGenerations.length === 0 ? (
@@ -775,8 +755,28 @@ export const GenerationsView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Download Button */}
-                <div className="pt-3 border-t border-gray-100">
+                {/* Download Buttons */}
+                <div className="pt-3 border-t border-gray-100 space-y-2">
+                  <button
+                    onClick={() => {
+                      // Download just the raw layers JSON
+                      const blob = new Blob([JSON.stringify(result.raw_json, null, 2)], { type: 'application/json' })
+                      const url = URL.createObjectURL(blob)
+                      const link = document.createElement('a')
+                      link.href = url
+                      link.download = `metx-layers-${result.model?.name || result.model_id}-${Date.now()}.json`
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                      URL.revokeObjectURL(url)
+                    }}
+                    className="w-full bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-md text-sm transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <span>Download Generated Layers</span>
+                  </button>
                   <button
                     onClick={() => handleDownloadJson(result)}
                     className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-md text-sm transition-colors duration-200 flex items-center justify-center space-x-2"
@@ -784,7 +784,7 @@ export const GenerationsView: React.FC = () => {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                     </svg>
-                    <span>Download Complete JSON</span>
+                    <span>Download Generated Dashboard</span>
                   </button>
                 </div>
               </div>
