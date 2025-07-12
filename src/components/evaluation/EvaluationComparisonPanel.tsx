@@ -235,6 +235,21 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
             </div>
           )}
 
+          {/* Raw LLM Response for debugging parsing failures */}
+          {result.comparison_score === 0 && result.raw_llm_response && (
+            <div className="mb-4">
+              <h5 className="text-sm font-medium text-orange-700 mb-2">
+                🔧 Raw LLM Response (for debugging):
+              </h5>
+              <div className="bg-orange-50 p-3 rounded border border-orange-200 text-sm text-orange-900 font-mono max-h-40 overflow-y-auto">
+                {result.raw_llm_response}
+              </div>
+              <div className="text-xs text-orange-600 mt-1">
+                ⚠️ JSON parsing failed. The raw response above shows exactly what the LLM returned.
+              </div>
+            </div>
+          )}
+
           {/* Download Buttons */}
           <div className="flex flex-wrap gap-2">
             <button
@@ -249,6 +264,24 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
             >
               Download Input
             </button>
+
+            {/* Copy Raw Response button for parsing failures */}
+            {result.comparison_score === 0 && result.raw_llm_response && (
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(result.raw_llm_response || '')
+                    console.log('Raw LLM response copied to clipboard')
+                  } catch (error) {
+                    console.error('Failed to copy raw response:', error)
+                  }
+                }}
+                className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded hover:bg-orange-200 transition-colors"
+                title="Copy the complete raw LLM response for debugging parsing issues"
+              >
+                Copy Raw Response
+              </button>
+            )}
             
             {/* Expected JSON buttons */}
             <button
@@ -346,6 +379,11 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
     modelId: string
   } | null>(null)
 
+  const [promptModal, setPromptModal] = useState<{
+    isOpen: boolean
+    prompt: Prompt | null
+  }>({ isOpen: false, prompt: null })
+
   // Load test cases count and judge configuration on mount
   useEffect(() => {
     const loadData = async () => {
@@ -419,12 +457,36 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
       const geminiFlashModel = evaluationState.availableModels.find(m => m.id === 'google/gemini-2.5-flash')
       const defaultModelId = geminiFlashModel ? geminiFlashModel.id : evaluationState.availableModels[0].id
       
+      // Find the default prompt, fallback to first prompt if none is marked as default
+      const defaultPrompt = evaluationState.availablePrompts.find(p => p.is_default) || evaluationState.availablePrompts[0]
+      
       setSelectedPromptModel({
-        promptId: evaluationState.availablePrompts[0].id,
+        promptId: defaultPrompt.id,
         modelId: defaultModelId
       })
     }
   }, [evaluationState.availablePrompts, evaluationState.availableModels, selectedPromptModel])
+
+  const handleViewPrompt = async (runId: string) => {
+    try {
+      // Get the run details to find the prompt_id
+      const summary = await BatchEvaluationService.getBatchEvaluationSummary(runId)
+      if (summary) {
+        // Get the batch run to find the prompt_id
+        const runs = await BatchEvaluationService.getAllBatchRuns()
+        const run = runs.find(r => r.id === runId)
+        if (run) {
+          // Fetch the prompt details
+          const prompt = await PromptService.fetchPromptById(run.prompt_id)
+          if (prompt) {
+            setPromptModal({ isOpen: true, prompt })
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading prompt:', error)
+    }
+  }
 
   const handleStartEvaluation = async () => {
     if (!selectedPromptModel) return
@@ -560,7 +622,7 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
                 <option value="">Select a prompt...</option>
                 {evaluationState.availablePrompts.map((prompt) => (
                   <option key={prompt.id} value={prompt.id}>
-                    {prompt.name}
+                    {prompt.name} (v{prompt.current_version})
                   </option>
                 ))}
               </select>
@@ -608,7 +670,7 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
                 <option value="">Default Judge Prompt</option>
                 {evaluationState.judgePrompts.map((prompt) => (
                   <option key={prompt.id} value={prompt.id}>
-                    {prompt.name}
+                    {prompt.name} (v{prompt.current_version})
                   </option>
                 ))}
               </select>
@@ -687,32 +749,32 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
         <div className="space-y-6">
           {/* Overall Score Card */}
           <div className={`p-6 rounded-lg border-2 ${
-            evaluationState.summary.average_score !== null 
-              ? getScoreBackground(evaluationState.summary.average_score)
+            evaluationState.summary?.average_score !== null 
+              ? getScoreBackground(evaluationState.summary?.average_score)
               : 'bg-gray-50'
           }`}>
             <div className="text-center">
               <div className="text-3xl font-bold mb-2 ${
-                evaluationState.summary.average_score !== null 
-                  ? getScoreColor(evaluationState.summary.average_score)
+                evaluationState.summary?.average_score !== null 
+                  ? getScoreColor(evaluationState.summary?.average_score)
                   : 'text-gray-500'
               }">
-                {evaluationState.summary.average_score !== null 
-                  ? `${evaluationState.summary.average_score.toFixed(1)}/10`
+                {evaluationState.summary?.average_score !== null 
+                  ? `${evaluationState.summary?.average_score.toFixed(1)}/10`
                   : 'N/A'
                 }
               </div>
               <div className="text-lg font-semibold text-gray-900 mb-1">Average Evaluation Score</div>
               <div className="text-sm text-gray-600">
-                Across {evaluationState.summary.completed_test_cases} test cases
+                Across {evaluationState.summary?.completed_test_cases} test cases
               </div>
               
               {/* Progress bar for average score */}
-              {evaluationState.summary.average_score !== null && (
+              {evaluationState.summary?.average_score !== null && (
                 <div className="mt-4 w-full bg-gray-200 rounded-full h-3">
                   <div 
-                    className={`h-3 rounded-full transition-all duration-500 ${getProgressBarColor(evaluationState.summary.average_score)}`}
-                    style={{ width: `${(evaluationState.summary.average_score / 10) * 100}%` }}
+                    className={`h-3 rounded-full transition-all duration-500 ${getProgressBarColor(evaluationState.summary?.average_score)}`}
+                    style={{ width: `${(evaluationState.summary?.average_score / 10) * 100}%` }}
                   />
                 </div>
               )}
@@ -724,25 +786,31 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
             <h4 className="text-md font-semibold text-gray-900 mb-3">Evaluation Details</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-gray-700">Prompt:</span> {evaluationState.summary.prompt_name}
+                <span className="font-medium text-gray-700">Prompt:</span> 
+                <button 
+                  onClick={() => evaluationState.summary && handleViewPrompt(evaluationState.summary.run_id)}
+                  className="ml-1 text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {evaluationState.summary?.prompt_name} (v{evaluationState.summary?.prompt_version})
+                </button>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Model:</span> {evaluationState.summary.model_name}
+                <span className="font-medium text-gray-700">Model:</span> {evaluationState.summary?.model_name}
               </div>
               <div>
                 <span className="font-medium text-gray-700">Status:</span> 
                 <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                  evaluationState.summary.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  evaluationState.summary.status === 'failed' ? 'bg-red-100 text-red-800' :
+                  evaluationState.summary?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                  evaluationState.summary?.status === 'failed' ? 'bg-red-100 text-red-800' :
                   'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {evaluationState.summary.status}
+                  {evaluationState.summary?.status}
                 </span>
               </div>
               <div>
                 <span className="font-medium text-gray-700">Duration:</span> 
-                {evaluationState.summary.duration_ms 
-                  ? ` ${Math.round(evaluationState.summary.duration_ms / 1000)}s`
+                {evaluationState.summary?.duration_ms 
+                  ? ` ${Math.round(evaluationState.summary?.duration_ms / 1000)}s`
                   : ' In progress'
                 }
               </div>
@@ -750,12 +818,12 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
           </div>
 
           {/* Individual Test Results */}
-          {evaluationState.summary.results.length > 0 && (
+          {evaluationState.summary?.results.length > 0 && (
             <div>
               <div className="flex justify-between items-center mb-3">
                 <h4 className="text-md font-semibold text-gray-900">Individual Test Results</h4>
                 {(() => {
-                  const failedParsingCount = evaluationState.summary.results.filter(r => r.comparison_score === 0).length
+                  const failedParsingCount = evaluationState.summary?.results.filter(r => r.comparison_score === 0).length
                   return failedParsingCount > 0 ? (
                     <div className="text-sm text-orange-600 bg-orange-50 px-2 py-1 rounded">
                       ⚠️ {failedParsingCount} parsing failure{failedParsingCount > 1 ? 's' : ''}
@@ -764,7 +832,7 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
                 })()}
               </div>
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {evaluationState.summary.results.map((result, index) => (
+                {evaluationState.summary?.results.map((result, index) => (
                   <TestCaseResult
                     key={result.id}
                     result={result}
@@ -809,6 +877,66 @@ export function EvaluationComparisonPanel({ results: _results, className = '', s
           <p className="text-gray-600 text-sm">
             Add test cases to the evaluation framework to start running batch evaluations.
           </p>
+        </div>
+      )}
+
+      {/* Prompt Modal */}
+      {promptModal.isOpen && promptModal.prompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {promptModal.prompt.name} (v{promptModal.prompt.version})
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">{promptModal.prompt.description}</p>
+              </div>
+              <button
+                onClick={() => setPromptModal({ isOpen: false, prompt: null })}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-md font-medium text-gray-900 mb-2">Template Text</h4>
+                <pre className="bg-gray-50 p-4 rounded-lg text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto">
+                  {promptModal.prompt.template_text}
+                </pre>
+              </div>
+              
+              {promptModal.prompt.json_prefix && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-2">JSON Prefix</h4>
+                  <pre className="bg-gray-50 p-4 rounded-lg text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto">
+                    {promptModal.prompt.json_prefix}
+                  </pre>
+                </div>
+              )}
+              
+              {promptModal.prompt.json_suffix && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-2">JSON Suffix</h4>
+                  <pre className="bg-gray-50 p-4 rounded-lg text-sm text-gray-800 whitespace-pre-wrap overflow-x-auto">
+                    {promptModal.prompt.json_suffix}
+                  </pre>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setPromptModal({ isOpen: false, prompt: null })}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -276,7 +276,7 @@ export function GenerationForm({ models, prompts, isProcessingResults = false, o
             ) : (
               prompts.map((prompt) => (
                 <option key={prompt.id} value={prompt.id}>
-                  {prompt.name}
+                  {prompt.name} (v{prompt.current_version})
                 </option>
               ))
             )}

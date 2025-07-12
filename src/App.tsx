@@ -15,6 +15,7 @@ import { UserInputService } from './services/inputs/UserInputService'
 import { PromptService } from './services/prompts/PromptService'
 import { ModelService } from './services/models/ModelService'
 import { PromptVersionHistory } from './components/generation/PromptVersionHistory'
+import { parseLLMJsonResponse } from './utils/jsonParsing'
 import type { Model, Prompt } from './types/database'
 import type { EvaluationResult } from './services/evaluation/EvaluationService'
 
@@ -448,6 +449,17 @@ function App() {
     }
   }
 
+  // Helper function to copy complete raw LLM response for debugging
+  const handleCopyRawResponse = async (result: any) => {
+    try {
+      const rawResponse = result.raw_llm_response || 'No raw response available'
+      await navigator.clipboard.writeText(rawResponse)
+      console.log('Complete raw LLM response copied to clipboard')
+    } catch (error) {
+      console.error('Failed to copy raw response:', error)
+    }
+  }
+
   const handleCopyJson = async (result: any, prompt: Prompt, userInput?: string) => {
     try {
       const completeJson = constructCompleteJson(result.raw_json, prompt, userInput)
@@ -529,34 +541,11 @@ function App() {
         let final_json: any
         
         if (result.success && result.content) {
-          try {
-            // The LLM should return JSON - try to parse it first
-            let contentToParse = result.content.trim()
-            
-            // Strip markdown code blocks if present (```json ... ```)
-            if (contentToParse.startsWith('```')) {
-              const lines = contentToParse.split('\n')
-              // Remove first line (```json or similar) and last line (```)
-              if (lines.length > 2 && lines[lines.length - 1].trim() === '```') {
-                contentToParse = lines.slice(1, -1).join('\n')
-                console.log('Stripped markdown code blocks from LLM response')
-              }
-            }
-            
-            // Debug logging to understand the content format
-            console.log('Parsing content preview:', contentToParse.substring(0, 100) + '...')
-            console.log('Content starts with {:', contentToParse.startsWith('{'))
-            console.log('Content includes },:', contentToParse.includes('},'))
-            console.log('Content starts with [:', contentToParse.startsWith('['))
-            
-            // Check if content looks like comma-separated JSON objects (not wrapped in array)
-            // This handles cases where models return {obj1},{obj2},{obj3} instead of [{obj1},{obj2},{obj3}]
-            if (contentToParse.startsWith('{') && contentToParse.includes('},') && !contentToParse.startsWith('[')) {
-              console.log('Detected comma-separated JSON objects, wrapping in array')
-              contentToParse = '[' + contentToParse + ']'
-            }
-            
-            rawLlmOutput = JSON.parse(contentToParse)
+          // Use the shared JSON parsing utility for consistency with evaluation
+          const parseResult = parseLLMJsonResponse(result.content)
+          
+          if (parseResult.success) {
+            rawLlmOutput = parseResult.data
             
             // Check if it's a single layer object or array of layers
             let layersContent: any
@@ -594,74 +583,11 @@ function App() {
               }
             }
             
-          } catch (error) {
-            console.error('Error parsing LLM response:', error)
-            console.log('Raw LLM content:', result.content)
-            
-            // Try to parse the content as raw layer JSON (without wrapping object)
-            try {
-              // The content might be a raw layer object or array - try to parse it directly
-              let fallbackContentToParse = result.content.trim()
-              
-              // Strip markdown code blocks if present (```json ... ```)
-              if (fallbackContentToParse.startsWith('```')) {
-                const lines = fallbackContentToParse.split('\n')
-                // Remove first line (```json or similar) and last line (```)
-                if (lines.length > 2 && lines[lines.length - 1].trim() === '```') {
-                  fallbackContentToParse = lines.slice(1, -1).join('\n')
-                  console.log('Stripped markdown code blocks from LLM response (fallback)')
-                }
-              }
-              
-              // Check if content looks like comma-separated JSON objects (not wrapped in array)
-              // This handles cases where models return {obj1},{obj2},{obj3} instead of [{obj1},{obj2},{obj3}]
-              if (fallbackContentToParse.startsWith('{') && fallbackContentToParse.includes('},') && !fallbackContentToParse.startsWith('[')) {
-                console.log('Detected comma-separated JSON objects in fallback, wrapping in array')
-                fallbackContentToParse = '[' + fallbackContentToParse + ']'
-              }
-              
-              const possibleLayer = JSON.parse(fallbackContentToParse)
-              let layersArray: any[]
-              
-              if (Array.isArray(possibleLayer)) {
-                layersArray = possibleLayer
-              } else if (possibleLayer && typeof possibleLayer === 'object') {
-                // Check if it's the invalid structure with layer1_object, layer2_object, etc.
-                const keys = Object.keys(possibleLayer)
-                if (keys.some(key => key.includes('layer') && key.includes('object'))) {
-                  // Convert invalid structure to proper array
-                  layersArray = keys
-                    .filter(key => key.includes('layer') && key.includes('object'))
-                    .sort() // Sort to maintain order (layer1_object, layer2_object, etc.)
-                    .map(key => possibleLayer[key])
-                  console.log('Converted invalid layer structure to array (fallback):', layersArray)
-                } else {
-                  layersArray = [possibleLayer]
-                }
-              } else {
-                throw new Error('Could not parse as layer structure')
-              }
-              
-              rawLlmOutput = layersArray
-              const completeJsonString = constructCompleteJson(layersArray, data.selectedPrompt, data.text)
-              try {
-                final_json = JSON.parse(completeJsonString)
-              } catch (jsonError) {
-                console.error('Failed to parse complete JSON string (fallback):', jsonError)
-                console.log('Complete JSON string that failed (fallback):', completeJsonString.substring(0, 500) + '...')
-                // Final fallback: use the raw layers array as final_json
-                final_json = {
-                  layers: layersArray,
-                  error: 'JSON prefix/suffix combination failed, using raw layers'
-                }
-              }
-              
-            } catch (innerError) {
-              console.error('Failed to parse as layer structure:', innerError)
-              // Last resort fallback
-              rawLlmOutput = { content: result.content, error: 'Failed to parse as valid JSON' }
-              final_json = rawLlmOutput
-            }
+          } else {
+            // Parsing failed, use the fallback data from shared utility
+            console.warn('JSON parsing failed, using fallback data:', parseResult.error)
+            rawLlmOutput = parseResult.data
+            final_json = rawLlmOutput
           }
         } else {
           // Handle error case
@@ -676,6 +602,7 @@ function App() {
           model_id: result.model_id,
           user_id: userId,
           raw_json: rawLlmOutput,
+          raw_llm_response: result.content || null, // Store complete raw LLM response
           final_json: final_json,
           cost_chf: result.cost_chf,
           latency_ms: result.latency_ms
@@ -700,6 +627,7 @@ function App() {
           prompt_used: data.selectedPrompt.name,
           user_input: data.text,
           raw_json: dbResult.raw_json,
+          raw_llm_response: dbResult.raw_llm_response,
           final_json: dbResult.final_json,
           complete_json_string: completeJsonString,
           prompt: data.selectedPrompt,
@@ -1421,6 +1349,21 @@ function App() {
                                 {JSON.stringify(result.raw_json, null, 2)}
                               </pre>
                             </div>
+
+                            {/* Show raw response when parsing failed */}
+                            {result.raw_json?.error?.includes('Failed to parse') && result.raw_llm_response && (
+                              <div>
+                                <h4 className="text-sm font-medium text-orange-700 mb-1">
+                                  🔧 Raw LLM Response (for debugging):
+                                </h4>
+                                <pre className="text-xs bg-orange-50 text-orange-900 p-3 rounded overflow-x-auto border-l-4 border-orange-400 max-h-40 overflow-y-auto">
+                                  {result.raw_llm_response}
+                                </pre>
+                                <div className="text-xs text-orange-600 mt-1">
+                                  ⚠️ JSON parsing failed. The raw response above shows exactly what the LLM returned.
+                                </div>
+                              </div>
+                            )}
                             
                             <div className="flex space-x-2 flex-wrap">
                               <button 
@@ -1428,6 +1371,13 @@ function App() {
                                 className="btn-secondary text-xs"
                               >
                                 Copy LLM Output
+                              </button>
+                              <button 
+                                onClick={() => handleCopyRawResponse(result)}
+                                className="btn-secondary text-xs bg-orange-100 text-orange-700 hover:bg-orange-200"
+                                title="Copy the complete raw LLM response for debugging parsing issues"
+                              >
+                                Copy Raw Response
                               </button>
                               <button 
                                 onClick={() => handleCopyJson(result, result.prompt, result.user_input)}

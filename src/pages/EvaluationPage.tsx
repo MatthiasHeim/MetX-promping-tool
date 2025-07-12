@@ -120,6 +120,17 @@ export const EvaluationPage: React.FC = () => {
                   <p className="text-gray-600 mt-1">
                     Run ID: {selectedRun.id}
                   </p>
+                  {(selectedRun as any).prompts && (
+                    <div className="mt-2 text-sm text-gray-600">
+                      <span className="font-medium">Prompt:</span> {(selectedRun as any).prompts.name} 
+                      <span className="text-gray-500"> (v{selectedRun.prompt_version})</span>
+                    </div>
+                  )}
+                  {(selectedRun as any).models && (
+                    <div className="mt-1 text-sm text-gray-600">
+                      <span className="font-medium">Model:</span> {(selectedRun as any).models.name}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => setSelectedRun(null)}
@@ -199,6 +210,11 @@ export const EvaluationPage: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{run.name}</div>
                             <div className="text-sm text-gray-500">ID: {run.id}</div>
+                            {(run as any).prompts && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {(run as any).prompts.name} v{run.prompt_version} • {(run as any).models?.name}
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(run.status)}`}>

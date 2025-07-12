@@ -150,6 +150,7 @@ export interface Database {
           model_id: string
           user_id: string
           raw_json: any | null
+          raw_llm_response: string | null
           final_json: any | null
           cost_chf: number | null
           latency_ms: number | null
@@ -180,6 +181,7 @@ export interface Database {
           model_id: string
           user_id: string
           raw_json?: any | null
+          raw_llm_response?: string | null
           final_json?: any | null
           cost_chf?: number | null
           latency_ms?: number | null
@@ -284,6 +286,7 @@ export interface Database {
           id: string
           name: string | null
           prompt_id: string
+          prompt_version: number
           model_id: string
           judge_prompt_id: string | null
           judge_model_id: string | null
@@ -299,6 +302,7 @@ export interface Database {
           id?: string
           name?: string | null
           prompt_id: string
+          prompt_version: number
           model_id: string
           judge_prompt_id?: string | null
           judge_model_id?: string | null
@@ -329,6 +333,7 @@ export interface Database {
           comparison_details: string | null
           judge_model_id: string | null
           generated_json: any | null
+          raw_llm_response: string | null
           created_at: string
         }
         Insert: {
@@ -340,6 +345,7 @@ export interface Database {
           comparison_details?: string | null
           judge_model_id?: string | null
           generated_json?: any | null
+          raw_llm_response?: string | null
           created_at?: string
         }
         Update: {
@@ -347,6 +353,7 @@ export interface Database {
           comparison_score?: number | null
           comparison_details?: string | null
           generated_json?: any | null
+          raw_llm_response?: string | null
           judge_model_id?: string | null
         }
       }
@@ -579,6 +586,7 @@ export interface BatchEvaluationProgress {
 export interface BatchEvaluationSummary {
   run_id: string;
   prompt_name: string;
+  prompt_version: number;
   model_name: string;
   total_test_cases: number;
   completed_test_cases: number;

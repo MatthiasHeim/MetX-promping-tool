@@ -5,6 +5,7 @@ import { ModelService } from '../models/ModelService'
 import { OpenAIService } from '../generation/OpenAIService'
 import { OpenRouterService } from '../generation/OpenRouterService'
 import { GenerationService } from '../generation/GenerationService'
+import { parseLLMJsonResponse } from '../../utils/jsonParsing'
 import type { 
   BatchEvaluationRun, 
   BatchEvaluationRunUpdate,
@@ -33,12 +34,19 @@ export class BatchEvaluationService {
         throw new Error('No active test cases found to evaluate')
       }
 
+      // Fetch the current prompt to get its version
+      const prompt = await PromptService.fetchPromptById(request.prompt_id)
+      if (!prompt) {
+        throw new Error('Prompt not found')
+      }
+
       // Create the batch run record
       const { data: batchRun, error } = await supabase
         .from('batch_evaluation_runs')
         .insert([{
           name: request.name,
           prompt_id: request.prompt_id,
+          prompt_version: prompt.version,
           model_id: request.model_id,
           judge_prompt_id: request.judge_prompt_id || null,
           judge_model_id: request.judge_model_id || null,
@@ -135,7 +143,8 @@ export class BatchEvaluationService {
             comparison_score: comparisonResult.score,
             comparison_details: comparisonResult.details,
             judge_model_id: judgeModelId || 'google/gemini-2.5-flash', // Use configured or default judge model
-            generated_json: generationResult.generated_json
+            generated_json: generationResult.generated_json,
+            raw_llm_response: generationResult.raw_content || null // Store raw LLM response for debugging
           })
 
           results.push(batchResult)
@@ -164,7 +173,8 @@ export class BatchEvaluationService {
             comparison_score: 0,
             comparison_details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
             judge_model_id: null,
-            generated_json: null
+            generated_json: null,
+            raw_llm_response: null
           })
           completedCount++
         }
@@ -211,14 +221,9 @@ export class BatchEvaluationService {
         throw new Error(`Generation failed: ${response.error?.message || 'No content generated'}`)
       }
 
-      // Parse the JSON from the response
-      let generatedJson;
-      try {
-        generatedJson = JSON.parse(response.content)
-      } catch (parseError) {
-        console.warn('Failed to parse generated JSON, using raw content:', parseError)
-        generatedJson = { raw_content: response.content }
-      }
+      // Parse the JSON from the response using the shared utility for consistency with regular generation
+      const parseResult = parseLLMJsonResponse(response.content)
+      const generatedJson = parseResult.data
 
       return {
         id: `generated-result-${testCase.id}`,
@@ -502,7 +507,7 @@ DETAILS: [explanation]
         .from('batch_evaluation_runs')
         .select(`
           *,
-          prompts!batch_evaluation_runs_prompt_id_fkey(name),
+          prompts!batch_evaluation_runs_prompt_id_fkey(name, version),
           models!batch_evaluation_runs_model_id_fkey(name)
         `)
         .eq('id', runId)
@@ -534,6 +539,7 @@ DETAILS: [explanation]
       return {
         run_id: run.id,
         prompt_name: run.prompts?.name || 'Unknown Prompt',
+        prompt_version: run.prompt_version,
         model_name: run.models?.name || 'Unknown Model',
         total_test_cases: run.total_test_cases,
         completed_test_cases: run.completed_test_cases,
@@ -560,7 +566,7 @@ DETAILS: [explanation]
         .from('batch_evaluation_runs')
         .select(`
           *,
-          prompts!batch_evaluation_runs_prompt_id_fkey(name),
+          prompts!batch_evaluation_runs_prompt_id_fkey(name, version),
           models!batch_evaluation_runs_model_id_fkey(name)
         `)
         .order('started_at', { ascending: false })
