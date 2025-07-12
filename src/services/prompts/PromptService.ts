@@ -320,25 +320,66 @@ export class PromptService {
     try {
       console.log(`Rolling back prompt ${promptId} to version ${versionNumber}`)
       
-      // Call the PostgreSQL function to rollback
-      const { error } = await supabase.rpc('rollback_prompt_to_version', {
-        prompt_id_param: promptId,
-        version_number_param: versionNumber
-      })
-
-      if (error) {
-        console.error('Error rolling back prompt:', error)
-        throw new Error(`Failed to rollback prompt: ${error.message}`)
+      // First, get the version data we want to rollback to
+      const targetVersion = await this.getPromptVersion(promptId, versionNumber)
+      if (!targetVersion) {
+        throw new Error(`Version ${versionNumber} not found for prompt ${promptId}`)
       }
 
-      // Fetch the updated prompt
-      const updatedPrompt = await this.fetchPromptById(promptId)
-      if (!updatedPrompt) {
-        throw new Error('Failed to fetch updated prompt after rollback')
-      }
+      // Try using the server function first (it should work now)
+      try {
+        const { error } = await supabase.rpc('rollback_prompt_to_version', {
+          prompt_id_param: promptId,
+          version_number_param: versionNumber
+        })
 
-      console.log(`Successfully rolled back prompt to version ${versionNumber}`)
-      return updatedPrompt
+        if (error) {
+          console.warn('Server function failed, falling back to client-side rollback:', error.message)
+          throw error
+        }
+
+        // Fetch the updated prompt
+        const updatedPrompt = await this.fetchPromptById(promptId)
+        if (!updatedPrompt) {
+          throw new Error('Failed to fetch updated prompt after rollback')
+        }
+
+        console.log(`Successfully rolled back prompt to version ${versionNumber}`)
+        return updatedPrompt
+      } catch {
+        // Fallback to client-side rollback
+        console.log('Using client-side rollback approach')
+        
+        // Update the prompt with the target version's data
+        // This will create a new version automatically via the trigger
+        const updateData = {
+          name: targetVersion.name,
+          description: targetVersion.description || undefined,
+          template_text: targetVersion.template_text,
+          json_prefix: targetVersion.json_prefix || undefined,
+          json_suffix: targetVersion.json_suffix || undefined,
+          use_placeholder: targetVersion.use_placeholder
+        }
+
+        const updatedPrompt = await this.updatePrompt(promptId, updateData)
+        
+        // Update the newly created version to indicate it's a rollback
+        const currentVersions = await this.getPromptVersions(promptId)
+        const newestVersion = currentVersions[0] // They're ordered by version_number desc
+        
+        if (newestVersion) {
+          await supabase
+            .from('prompt_versions')
+            .update({ 
+              change_summary: `Rolled back to version ${versionNumber}`,
+              created_at: new Date().toISOString()
+            })
+            .eq('id', newestVersion.id)
+        }
+
+        console.log(`Successfully rolled back prompt to version ${versionNumber} (client-side)`)
+        return updatedPrompt
+      }
     } catch (error) {
       console.error('Error in rollbackPromptToVersion:', error)
       throw error
