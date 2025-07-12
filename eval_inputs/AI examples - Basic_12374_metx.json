@@ -1,1 +1,710 @@
-{"id":12374,"title":"AI examples - Basic","tab_active":68355,"use_global_datetime":false,"global_datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-08T08:45:00Z","abs_end":"2025-07-09T08:45:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":12003,"id_profile":12374,"time_created":"2025-07-08T08:58:37.687671Z","time_updated":"2025-07-08T08:58:37.687671Z"},"id_account":317,"time_created":"2025-07-08T08:58:37.585392Z","time_updated":"2025-07-08T12:23:48.017030Z","tabs":[{"id":68342,"id_profile":12374,"time_created":"2025-07-08T08:58:37.605240Z","time_updated":"2025-07-08T12:18:29.561093Z","title":"Temperature Germany","order":1,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-08T08:45:00Z","abs_end":"2025-07-09T08:45:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68342,"id_profile":12374,"time_created":"2025-07-08T08:58:37.662966Z","time_updated":"2025-07-08T08:58:37.662966Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170134,"id_tab":68342,"type":"Map","id_tool":115094}],"viewports":[{"kind":"ViewportFull","center_lng":10.165474507107604,"center_lat":50.63485243720632,"zoom":5.712956426852413,"southWest_lng":-1.308954739178887,"southWest_lat":46.268802975952696,"northEast_lng":21.639903753393327,"northEast_lat":54.62997924200718,"id":124582,"id_profile":12374,"lastUpdatedBy":115094}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115094,"id_profile":12374,"id_tab":68342,"id_viewport":124582,"time_created":"2025-07-08T08:58:37.639704Z","time_updated":"2025-07-08T12:18:29.584526Z","title":"Temperature Germany","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-08T08:58:37.651204Z","time_updated":"2025-07-08T12:18:29.614114Z","id":549227,"id_profile":12374,"id_cartographicmap":115094,"index":0,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-08T12:15:45.456074Z","time_updated":"2025-07-08T12:18:29.614114Z","id":549257,"id_profile":12374,"id_cartographicmap":115094,"index":1,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"t_2m:C","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]},{"id":68352,"id_profile":12374,"time_created":"2025-07-08T12:15:48.791579Z","time_updated":"2025-07-08T12:18:22.212958Z","title":"Rain - Switzerland","order":2,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-08T12:00:00Z","abs_end":"2025-07-09T12:00:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68352,"id_profile":12374,"time_created":"2025-07-08T12:15:48.822748Z","time_updated":"2025-07-08T12:15:48.822748Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170151,"id_tab":68352,"type":"Map","id_tool":115106}],"viewports":[{"kind":"ViewportFull","center_lng":8.315788241219025,"center_lat":46.88539076335263,"zoom":7.061319205878983,"southWest_lng":3.8093497177730455,"southWest_lat":45.08772924073452,"northEast_lng":12.822226764664748,"northEast_lat":48.62476854482509,"id":124594,"id_profile":12374,"lastUpdatedBy":115106}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115106,"id_profile":12374,"id_tab":68352,"id_viewport":124594,"time_created":"2025-07-08T12:15:54.821541Z","time_updated":"2025-07-08T12:18:22.234360Z","title":"Rain - Switzerland","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-08T12:15:54.833565Z","time_updated":"2025-07-08T12:18:22.264922Z","id":549258,"id_profile":12374,"id_cartographicmap":115106,"index":0,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-08T12:16:00.043681Z","time_updated":"2025-07-08T12:18:22.264922Z","id":549259,"id_profile":12374,"id_cartographicmap":115106,"index":1,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"precip_1h:mm","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]},{"id":68353,"id_profile":12374,"time_created":"2025-07-08T12:16:19.192800Z","time_updated":"2025-07-08T12:18:15.497842Z","title":"Wind speed EU","order":3,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-08T12:00:00Z","abs_end":"2025-07-09T12:00:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68353,"id_profile":12374,"time_created":"2025-07-08T12:16:19.217641Z","time_updated":"2025-07-08T12:16:19.217641Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170152,"id_tab":68353,"type":"Map","id_tool":115107}],"viewports":[{"kind":"ViewportFull","center_lng":5.27383450365727,"center_lat":47.8273478389502,"zoom":4.2283755958581875,"southWest_lng":-26.835732818272817,"southWest_lat":33.977579984555604,"northEast_lng":37.383401825587896,"northEast_lat":58.76872822127763,"id":124595,"id_profile":12374,"lastUpdatedBy":115107}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115107,"id_profile":12374,"id_tab":68353,"id_viewport":124595,"time_created":"2025-07-08T12:16:21.166007Z","time_updated":"2025-07-08T12:18:15.519045Z","title":"Wind speed EU","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-08T12:16:21.178431Z","time_updated":"2025-07-08T12:18:15.551056Z","id":549260,"id_profile":12374,"id_cartographicmap":115107,"index":0,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-08T12:16:28.477085Z","time_updated":"2025-07-08T12:18:15.551056Z","id":549261,"id_profile":12374,"id_cartographicmap":115107,"index":1,"opacity":0.51,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"wind_speed_10m:ms","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]},{"id":68354,"id_profile":12374,"time_created":"2025-07-08T12:17:01.733922Z","time_updated":"2025-07-08T12:23:48.892202Z","title":"Cloud coverage US","order":4,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-08T12:00:00Z","abs_end":"2025-07-09T12:00:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68354,"id_profile":12374,"time_created":"2025-07-08T12:17:01.760494Z","time_updated":"2025-07-08T12:17:01.760494Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170153,"id_tab":68354,"type":"Map","id_tool":115108}],"viewports":[{"kind":"ViewportFull","center_lng":-103.02080638013317,"center_lat":38.57823300523677,"zoom":3.9258665127984624,"southWest_lng":-142.6211324041965,"southWest_lat":18.790209747225177,"northEast_lng":-63.420480356069504,"northEast_lat":54.11844183274647,"id":124596,"id_profile":12374,"lastUpdatedBy":115108}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115108,"id_profile":12374,"id_tab":68354,"id_viewport":124596,"time_created":"2025-07-08T12:17:07.037511Z","time_updated":"2025-07-08T12:23:48.914115Z","title":"Cloud coverage US","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-08T12:17:07.049548Z","time_updated":"2025-07-08T12:23:48.941855Z","id":549262,"id_profile":12374,"id_cartographicmap":115108,"index":0,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-08T12:17:25.603397Z","time_updated":"2025-07-08T12:23:48.941855Z","id":549263,"id_profile":12374,"id_cartographicmap":115108,"index":1,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"low_cloud_cover:octas","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]},{"id":68355,"id_profile":12374,"time_created":"2025-07-08T12:17:48.984188Z","time_updated":"2025-07-08T13:18:17.963829Z","title":"UV Index - Spain","order":5,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-08T12:00:00Z","abs_end":"2025-07-09T12:00:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68355,"id_profile":12374,"time_created":"2025-07-08T12:17:49.018656Z","time_updated":"2025-07-08T12:17:49.018656Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170154,"id_tab":68355,"type":"Map","id_tool":115109}],"viewports":[{"kind":"ViewportFull","center_lng":-4.052276681318062,"center_lat":39.785995657495846,"zoom":5.750283566331533,"southWest_lng":-15.233633418717659,"southWest_lat":34.67793491315227,"northEast_lng":7.129080056082188,"northEast_lat":44.541234917238484,"id":124597,"id_profile":12374,"lastUpdatedBy":115109}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115109,"id_profile":12374,"id_tab":68355,"id_viewport":124597,"time_created":"2025-07-08T12:18:31.894346Z","time_updated":"2025-07-08T13:18:17.987796Z","title":"UV Index - Spain","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-08T12:18:31.907252Z","time_updated":"2025-07-08T13:18:18.015864Z","id":549264,"id_profile":12374,"id_cartographicmap":115109,"index":0,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-08T12:18:59.503318Z","time_updated":"2025-07-08T13:18:18.015864Z","id":549265,"id_profile":12374,"id_cartographicmap":115109,"index":1,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"uv:idx","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]}]}
+{
+    "id": 12374,
+    "title": "AI examples - Basic",
+    "tab_active": 68355,
+    "use_global_datetime": false,
+    "global_datetime": {
+        "is_relative": true,
+        "is_series": false,
+        "is_auto_time_refresh_on": false,
+        "abs_start": "2025-07-08T08:45:00Z",
+        "abs_end": "2025-07-09T08:45:00Z",
+        "rel_rounding_on": true,
+        "rel_position": "now_with_15min_precision",
+        "rel_rounding_direction": "backward",
+        "rel_shift_on": true,
+        "rel_start": "PT-15M",
+        "rel_end": "P1D",
+        "temporal_resolution": "PT3H",
+        "fps": 10,
+        "id": 12003,
+        "id_profile": 12374,
+        "time_created": "2025-07-08T08:58:37.687671Z",
+        "time_updated": "2025-07-08T08:58:37.687671Z"
+    },
+    "id_account": 317,
+    "time_created": "2025-07-08T08:58:37.585392Z",
+    "time_updated": "2025-07-08T12:23:48.017030Z",
+    "tabs": [
+        {
+            "id": 68342,
+            "id_profile": 12374,
+            "time_created": "2025-07-08T08:58:37.605240Z",
+            "time_updated": "2025-07-08T12:18:29.561093Z",
+            "title": "Temperature Germany",
+            "order": 1,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-08T08:45:00Z",
+                "abs_end": "2025-07-09T08:45:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68342,
+                "id_profile": 12374,
+                "time_created": "2025-07-08T08:58:37.662966Z",
+                "time_updated": "2025-07-08T08:58:37.662966Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170134,
+                    "id_tab": 68342,
+                    "type": "Map",
+                    "id_tool": 115094
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": 10.165474507107604,
+                    "center_lat": 50.63485243720632,
+                    "zoom": 5.712956426852413,
+                    "southWest_lng": -1.308954739178887,
+                    "southWest_lat": 46.268802975952696,
+                    "northEast_lng": 21.639903753393327,
+                    "northEast_lat": 54.62997924200718,
+                    "id": 124582,
+                    "id_profile": 12374,
+                    "lastUpdatedBy": 115094
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115094,
+                    "id_profile": 12374,
+                    "id_tab": 68342,
+                    "id_viewport": 124582,
+                    "time_created": "2025-07-08T08:58:37.639704Z",
+                    "time_updated": "2025-07-08T12:18:29.584526Z",
+                    "title": "Temperature Germany",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-08T08:58:37.651204Z",
+                            "time_updated": "2025-07-08T12:18:29.614114Z",
+                            "id": 549227,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115094,
+                            "index": 0,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-08T12:15:45.456074Z",
+                            "time_updated": "2025-07-08T12:18:29.614114Z",
+                            "id": 549257,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115094,
+                            "index": 1,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "t_2m:C",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        },
+        {
+            "id": 68352,
+            "id_profile": 12374,
+            "time_created": "2025-07-08T12:15:48.791579Z",
+            "time_updated": "2025-07-08T12:18:22.212958Z",
+            "title": "Rain - Switzerland",
+            "order": 2,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-08T12:00:00Z",
+                "abs_end": "2025-07-09T12:00:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68352,
+                "id_profile": 12374,
+                "time_created": "2025-07-08T12:15:48.822748Z",
+                "time_updated": "2025-07-08T12:15:48.822748Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170151,
+                    "id_tab": 68352,
+                    "type": "Map",
+                    "id_tool": 115106
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": 8.315788241219025,
+                    "center_lat": 46.88539076335263,
+                    "zoom": 7.061319205878983,
+                    "southWest_lng": 3.8093497177730455,
+                    "southWest_lat": 45.08772924073452,
+                    "northEast_lng": 12.822226764664748,
+                    "northEast_lat": 48.62476854482509,
+                    "id": 124594,
+                    "id_profile": 12374,
+                    "lastUpdatedBy": 115106
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115106,
+                    "id_profile": 12374,
+                    "id_tab": 68352,
+                    "id_viewport": 124594,
+                    "time_created": "2025-07-08T12:15:54.821541Z",
+                    "time_updated": "2025-07-08T12:18:22.234360Z",
+                    "title": "Rain - Switzerland",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-08T12:15:54.833565Z",
+                            "time_updated": "2025-07-08T12:18:22.264922Z",
+                            "id": 549258,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115106,
+                            "index": 0,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-08T12:16:00.043681Z",
+                            "time_updated": "2025-07-08T12:18:22.264922Z",
+                            "id": 549259,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115106,
+                            "index": 1,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "precip_1h:mm",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        },
+        {
+            "id": 68353,
+            "id_profile": 12374,
+            "time_created": "2025-07-08T12:16:19.192800Z",
+            "time_updated": "2025-07-08T12:18:15.497842Z",
+            "title": "Wind speed EU",
+            "order": 3,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-08T12:00:00Z",
+                "abs_end": "2025-07-09T12:00:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68353,
+                "id_profile": 12374,
+                "time_created": "2025-07-08T12:16:19.217641Z",
+                "time_updated": "2025-07-08T12:16:19.217641Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170152,
+                    "id_tab": 68353,
+                    "type": "Map",
+                    "id_tool": 115107
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": 5.27383450365727,
+                    "center_lat": 47.8273478389502,
+                    "zoom": 4.2283755958581875,
+                    "southWest_lng": -26.835732818272817,
+                    "southWest_lat": 33.977579984555604,
+                    "northEast_lng": 37.383401825587896,
+                    "northEast_lat": 58.76872822127763,
+                    "id": 124595,
+                    "id_profile": 12374,
+                    "lastUpdatedBy": 115107
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115107,
+                    "id_profile": 12374,
+                    "id_tab": 68353,
+                    "id_viewport": 124595,
+                    "time_created": "2025-07-08T12:16:21.166007Z",
+                    "time_updated": "2025-07-08T12:18:15.519045Z",
+                    "title": "Wind speed EU",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-08T12:16:21.178431Z",
+                            "time_updated": "2025-07-08T12:18:15.551056Z",
+                            "id": 549260,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115107,
+                            "index": 0,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-08T12:16:28.477085Z",
+                            "time_updated": "2025-07-08T12:18:15.551056Z",
+                            "id": 549261,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115107,
+                            "index": 1,
+                            "opacity": 0.51,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "wind_speed_10m:ms",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        },
+        {
+            "id": 68354,
+            "id_profile": 12374,
+            "time_created": "2025-07-08T12:17:01.733922Z",
+            "time_updated": "2025-07-08T12:23:48.892202Z",
+            "title": "Cloud coverage US",
+            "order": 4,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-08T12:00:00Z",
+                "abs_end": "2025-07-09T12:00:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68354,
+                "id_profile": 12374,
+                "time_created": "2025-07-08T12:17:01.760494Z",
+                "time_updated": "2025-07-08T12:17:01.760494Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170153,
+                    "id_tab": 68354,
+                    "type": "Map",
+                    "id_tool": 115108
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": -103.02080638013317,
+                    "center_lat": 38.57823300523677,
+                    "zoom": 3.9258665127984624,
+                    "southWest_lng": -142.6211324041965,
+                    "southWest_lat": 18.790209747225177,
+                    "northEast_lng": -63.420480356069504,
+                    "northEast_lat": 54.11844183274647,
+                    "id": 124596,
+                    "id_profile": 12374,
+                    "lastUpdatedBy": 115108
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115108,
+                    "id_profile": 12374,
+                    "id_tab": 68354,
+                    "id_viewport": 124596,
+                    "time_created": "2025-07-08T12:17:07.037511Z",
+                    "time_updated": "2025-07-08T12:23:48.914115Z",
+                    "title": "Cloud coverage US",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-08T12:17:07.049548Z",
+                            "time_updated": "2025-07-08T12:23:48.941855Z",
+                            "id": 549262,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115108,
+                            "index": 0,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-08T12:17:25.603397Z",
+                            "time_updated": "2025-07-08T12:23:48.941855Z",
+                            "id": 549263,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115108,
+                            "index": 1,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "low_cloud_cover:octas",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        },
+        {
+            "id": 68355,
+            "id_profile": 12374,
+            "time_created": "2025-07-08T12:17:48.984188Z",
+            "time_updated": "2025-07-08T13:18:17.963829Z",
+            "title": "UV Index - Spain",
+            "order": 5,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-08T12:00:00Z",
+                "abs_end": "2025-07-09T12:00:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68355,
+                "id_profile": 12374,
+                "time_created": "2025-07-08T12:17:49.018656Z",
+                "time_updated": "2025-07-08T12:17:49.018656Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170154,
+                    "id_tab": 68355,
+                    "type": "Map",
+                    "id_tool": 115109
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": -4.052276681318062,
+                    "center_lat": 39.785995657495846,
+                    "zoom": 5.750283566331533,
+                    "southWest_lng": -15.233633418717659,
+                    "southWest_lat": 34.67793491315227,
+                    "northEast_lng": 7.129080056082188,
+                    "northEast_lat": 44.541234917238484,
+                    "id": 124597,
+                    "id_profile": 12374,
+                    "lastUpdatedBy": 115109
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115109,
+                    "id_profile": 12374,
+                    "id_tab": 68355,
+                    "id_viewport": 124597,
+                    "time_created": "2025-07-08T12:18:31.894346Z",
+                    "time_updated": "2025-07-08T13:18:17.987796Z",
+                    "title": "UV Index - Spain",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-08T12:18:31.907252Z",
+                            "time_updated": "2025-07-08T13:18:18.015864Z",
+                            "id": 549264,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115109,
+                            "index": 0,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-08T12:18:59.503318Z",
+                            "time_updated": "2025-07-08T13:18:18.015864Z",
+                            "id": 549265,
+                            "id_profile": 12374,
+                            "id_cartographicmap": 115109,
+                            "index": 1,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "uv:idx",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        }
+    ]
+}

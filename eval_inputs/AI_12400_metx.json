@@ -1,1 +1,507 @@
-{"id":12400,"title":"AI","tab_active":68525,"use_global_datetime":false,"global_datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-09T13:30:00Z","abs_end":"2025-07-10T13:30:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":12029,"id_profile":12400,"time_created":"2025-07-09T13:44:19.973881Z","time_updated":"2025-07-09T13:44:19.973881Z"},"id_account":81,"time_created":"2025-07-09T13:44:19.876698Z","time_updated":"2025-07-09T13:53:16.900351Z","tabs":[{"id":68521,"id_profile":12400,"time_created":"2025-07-09T13:44:19.893323Z","time_updated":"2025-07-09T13:52:35.688436Z","title":"A","order":1,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-09T13:30:00Z","abs_end":"2025-07-10T13:30:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68521,"id_profile":12400,"time_created":"2025-07-09T13:44:19.947392Z","time_updated":"2025-07-09T13:44:19.947392Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170617,"id_tab":68521,"type":"Map","id_tool":115405}],"viewports":[{"kind":"ViewportFull","center_lng":15.171041508811072,"center_lat":47.54350675715074,"zoom":2.2333378428690946,"southWest_lng":-93.23883886836377,"southWest_lat":-10.80178161409853,"northEast_lng":123.5809218859859,"northEast_lat":75.77020910364993,"id":124972,"id_profile":12400,"lastUpdatedBy":115405}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115405,"id_profile":12400,"id_tab":68521,"id_viewport":124972,"time_created":"2025-07-09T13:44:19.923687Z","time_updated":"2025-07-09T13:52:35.709389Z","title":"New Title","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-09T13:44:19.935986Z","time_updated":"2025-07-09T13:52:35.738376Z","id":551394,"id_profile":12400,"id_cartographicmap":115405,"index":1,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-09T13:44:59.252398Z","time_updated":"2025-07-09T13:52:35.738376Z","id":551397,"id_profile":12400,"id_cartographicmap":115405,"index":2,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"t_2m:C","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true},{"id":551395,"id_profile":12400,"id_cartographicmap":115405,"time_created":"2025-07-09T13:44:32.905170Z","time_updated":"2025-07-09T13:52:35.738376Z","index":3,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{},"model":"ecmwf-ifs","parameter_unit":"","ens_select":null,"show_init_time":false,"kind":"WeatherFrontsLayerDescription","line_width":2,"text_size":25},{"time_created":"2025-07-09T13:44:42.116251Z","time_updated":"2025-07-09T13:52:35.738376Z","id":551396,"id_profile":12400,"id_cartographicmap":115405,"index":4,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{},"model":"mix","parameter_unit":"msl_pressure:hPa","ens_select":null,"show_init_time":false,"kind":"PressureSystemLayerDescription","line_width":1,"line_color":"#000000","text_size":16,"text_color":"#000000","values":null,"value_range":"950,1050,4","filter_median":1,"filter_gauss":3}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]},{"id":68522,"id_profile":12400,"time_created":"2025-07-09T13:44:48.997656Z","time_updated":"2025-07-09T13:53:16.140298Z","title":"B","order":2,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-09T13:30:00Z","abs_end":"2025-07-10T13:30:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68522,"id_profile":12400,"time_created":"2025-07-09T13:44:49.025409Z","time_updated":"2025-07-09T13:44:49.025409Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170618,"id_tab":68522,"type":"Map","id_tool":115406}],"viewports":[{"kind":"ViewportFull","center_lng":8.894711334460851,"center_lat":52.555773197593254,"zoom":3.4700721232643197,"southWest_lng":-37.107080685454946,"southWest_lat":32.4968598512132,"northEast_lng":54.896503354378666,"northEast_lat":66.35174284592821,"id":124973,"id_profile":12400,"lastUpdatedBy":115406}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115406,"id_profile":12400,"id_tab":68522,"id_viewport":124973,"time_created":"2025-07-09T13:45:16.818727Z","time_updated":"2025-07-09T13:53:16.162394Z","title":"New Title","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-09T13:45:16.832171Z","time_updated":"2025-07-09T13:53:16.190919Z","id":551398,"id_profile":12400,"id_cartographicmap":115406,"index":1,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-09T13:52:44.322830Z","time_updated":"2025-07-09T13:53:16.190919Z","id":551423,"id_profile":12400,"id_cartographicmap":115406,"index":2,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"t_2m:C","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true},{"id":551399,"id_profile":12400,"id_cartographicmap":115406,"time_created":"2025-07-09T13:46:21.757224Z","time_updated":"2025-07-09T13:53:16.190919Z","index":3,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{},"model":"mix-obs","parameter_unit":"t_2m:C","ens_select":null,"show_init_time":false,"kind":"StationLayerDescription","text_size":15,"text_color":"#000000"}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]},{"id":68525,"id_profile":12400,"time_created":"2025-07-09T13:49:06.600046Z","time_updated":"2025-07-09T13:54:01.981526Z","title":"C","order":4,"is_favorite":false,"datetime":{"is_relative":true,"is_series":false,"is_auto_time_refresh_on":false,"abs_start":"2025-07-09T13:30:00Z","abs_end":"2025-07-10T13:30:00Z","rel_rounding_on":true,"rel_position":"now_with_15min_precision","rel_rounding_direction":"backward","rel_shift_on":true,"rel_start":"PT-15M","rel_end":"P1D","temporal_resolution":"PT3H","fps":10,"id":68525,"id_profile":12400,"time_created":"2025-07-09T13:49:06.628729Z","time_updated":"2025-07-09T13:49:06.628729Z"},"layouts":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":170623,"id_tab":68525,"type":"Map","id_tool":115409}],"viewports":[{"kind":"ViewportFull","center_lng":8.17033704375126,"center_lat":54.0163584169683,"zoom":3.574666067357788,"southWest_lng":-34.61439689268883,"southWest_lat":36.10871061718166,"northEast_lng":50.955070980193256,"northEast_lat":66.55677698521194,"id":124976,"id_profile":12400,"lastUpdatedBy":115409}],"country_plots":[],"energy_plots":[],"maps":[{"gridCellLayout":{"gridColumnStart":1,"gridColumnEnd":97,"gridRowStart":1,"gridRowEnd":97},"id":115409,"id_profile":12400,"id_tab":68525,"id_viewport":124976,"time_created":"2025-07-09T13:49:07.807766Z","time_updated":"2025-07-09T13:54:05.501442Z","title":"New Title","titleStyle":null,"time_offset_mins":0,"legend_size":null,"map_projection":{"name":"mercator","center":null,"parallels":null},"lod_bias":0,"layers":[{"time_created":"2025-07-09T13:49:07.821869Z","time_updated":"2025-07-09T13:54:05.540613Z","id":551414,"id_profile":12400,"id_cartographicmap":115409,"index":0,"opacity":1,"show":true,"calibrated":false,"vertical_interpolation":"none","experimental":false,"custom_options":{"line_color":null,"show_state_border":false,"map_label_language":null},"kind":"BackgroundMapDescription","style":"topographique"},{"time_created":"2025-07-09T13:50:20.542076Z","time_updated":"2025-07-09T13:54:05.540613Z","id":551416,"id_profile":12400,"id_cartographicmap":115409,"index":2,"opacity":0.7,"show":true,"calibrated":false,"vertical_interpolation":null,"experimental":false,"custom_options":{"init_date":null},"model":"mix","parameter_unit":"prob_tstorm_1h:p","ens_select":null,"show_init_time":null,"kind":"WmsLayerDescription","color_map":"","legend_visible":true}],"drawing":null}],"notes":[],"plots":[],"location_tables":[],"tephigrams":[],"weather_tables":[]}]}
+{
+    "id": 12400,
+    "title": "AI",
+    "tab_active": 68525,
+    "use_global_datetime": false,
+    "global_datetime": {
+        "is_relative": true,
+        "is_series": false,
+        "is_auto_time_refresh_on": false,
+        "abs_start": "2025-07-09T13:30:00Z",
+        "abs_end": "2025-07-10T13:30:00Z",
+        "rel_rounding_on": true,
+        "rel_position": "now_with_15min_precision",
+        "rel_rounding_direction": "backward",
+        "rel_shift_on": true,
+        "rel_start": "PT-15M",
+        "rel_end": "P1D",
+        "temporal_resolution": "PT3H",
+        "fps": 10,
+        "id": 12029,
+        "id_profile": 12400,
+        "time_created": "2025-07-09T13:44:19.973881Z",
+        "time_updated": "2025-07-09T13:44:19.973881Z"
+    },
+    "id_account": 81,
+    "time_created": "2025-07-09T13:44:19.876698Z",
+    "time_updated": "2025-07-09T13:53:16.900351Z",
+    "tabs": [
+        {
+            "id": 68521,
+            "id_profile": 12400,
+            "time_created": "2025-07-09T13:44:19.893323Z",
+            "time_updated": "2025-07-09T13:52:35.688436Z",
+            "title": "A",
+            "order": 1,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-09T13:30:00Z",
+                "abs_end": "2025-07-10T13:30:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68521,
+                "id_profile": 12400,
+                "time_created": "2025-07-09T13:44:19.947392Z",
+                "time_updated": "2025-07-09T13:44:19.947392Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170617,
+                    "id_tab": 68521,
+                    "type": "Map",
+                    "id_tool": 115405
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": 15.171041508811072,
+                    "center_lat": 47.54350675715074,
+                    "zoom": 2.2333378428690946,
+                    "southWest_lng": -93.23883886836377,
+                    "southWest_lat": -10.80178161409853,
+                    "northEast_lng": 123.5809218859859,
+                    "northEast_lat": 75.77020910364993,
+                    "id": 124972,
+                    "id_profile": 12400,
+                    "lastUpdatedBy": 115405
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115405,
+                    "id_profile": 12400,
+                    "id_tab": 68521,
+                    "id_viewport": 124972,
+                    "time_created": "2025-07-09T13:44:19.923687Z",
+                    "time_updated": "2025-07-09T13:52:35.709389Z",
+                    "title": "New Title",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-09T13:44:19.935986Z",
+                            "time_updated": "2025-07-09T13:52:35.738376Z",
+                            "id": 551394,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115405,
+                            "index": 1,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-09T13:44:59.252398Z",
+                            "time_updated": "2025-07-09T13:52:35.738376Z",
+                            "id": 551397,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115405,
+                            "index": 2,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "t_2m:C",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        },
+                        {
+                            "id": 551395,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115405,
+                            "time_created": "2025-07-09T13:44:32.905170Z",
+                            "time_updated": "2025-07-09T13:52:35.738376Z",
+                            "index": 3,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {},
+                            "model": "ecmwf-ifs",
+                            "parameter_unit": "",
+                            "ens_select": null,
+                            "show_init_time": false,
+                            "kind": "WeatherFrontsLayerDescription",
+                            "line_width": 2,
+                            "text_size": 25
+                        },
+                        {
+                            "time_created": "2025-07-09T13:44:42.116251Z",
+                            "time_updated": "2025-07-09T13:52:35.738376Z",
+                            "id": 551396,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115405,
+                            "index": 4,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {},
+                            "model": "mix",
+                            "parameter_unit": "msl_pressure:hPa",
+                            "ens_select": null,
+                            "show_init_time": false,
+                            "kind": "PressureSystemLayerDescription",
+                            "line_width": 1,
+                            "line_color": "#000000",
+                            "text_size": 16,
+                            "text_color": "#000000",
+                            "values": null,
+                            "value_range": "950,1050,4",
+                            "filter_median": 1,
+                            "filter_gauss": 3
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        },
+        {
+            "id": 68522,
+            "id_profile": 12400,
+            "time_created": "2025-07-09T13:44:48.997656Z",
+            "time_updated": "2025-07-09T13:53:16.140298Z",
+            "title": "B",
+            "order": 2,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-09T13:30:00Z",
+                "abs_end": "2025-07-10T13:30:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68522,
+                "id_profile": 12400,
+                "time_created": "2025-07-09T13:44:49.025409Z",
+                "time_updated": "2025-07-09T13:44:49.025409Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170618,
+                    "id_tab": 68522,
+                    "type": "Map",
+                    "id_tool": 115406
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": 8.894711334460851,
+                    "center_lat": 52.555773197593254,
+                    "zoom": 3.4700721232643197,
+                    "southWest_lng": -37.107080685454946,
+                    "southWest_lat": 32.4968598512132,
+                    "northEast_lng": 54.896503354378666,
+                    "northEast_lat": 66.35174284592821,
+                    "id": 124973,
+                    "id_profile": 12400,
+                    "lastUpdatedBy": 115406
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115406,
+                    "id_profile": 12400,
+                    "id_tab": 68522,
+                    "id_viewport": 124973,
+                    "time_created": "2025-07-09T13:45:16.818727Z",
+                    "time_updated": "2025-07-09T13:53:16.162394Z",
+                    "title": "New Title",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-09T13:45:16.832171Z",
+                            "time_updated": "2025-07-09T13:53:16.190919Z",
+                            "id": 551398,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115406,
+                            "index": 1,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-09T13:52:44.322830Z",
+                            "time_updated": "2025-07-09T13:53:16.190919Z",
+                            "id": 551423,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115406,
+                            "index": 2,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "t_2m:C",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        },
+                        {
+                            "id": 551399,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115406,
+                            "time_created": "2025-07-09T13:46:21.757224Z",
+                            "time_updated": "2025-07-09T13:53:16.190919Z",
+                            "index": 3,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {},
+                            "model": "mix-obs",
+                            "parameter_unit": "t_2m:C",
+                            "ens_select": null,
+                            "show_init_time": false,
+                            "kind": "StationLayerDescription",
+                            "text_size": 15,
+                            "text_color": "#000000"
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        },
+        {
+            "id": 68525,
+            "id_profile": 12400,
+            "time_created": "2025-07-09T13:49:06.600046Z",
+            "time_updated": "2025-07-09T13:54:01.981526Z",
+            "title": "C",
+            "order": 4,
+            "is_favorite": false,
+            "datetime": {
+                "is_relative": true,
+                "is_series": false,
+                "is_auto_time_refresh_on": false,
+                "abs_start": "2025-07-09T13:30:00Z",
+                "abs_end": "2025-07-10T13:30:00Z",
+                "rel_rounding_on": true,
+                "rel_position": "now_with_15min_precision",
+                "rel_rounding_direction": "backward",
+                "rel_shift_on": true,
+                "rel_start": "PT-15M",
+                "rel_end": "P1D",
+                "temporal_resolution": "PT3H",
+                "fps": 10,
+                "id": 68525,
+                "id_profile": 12400,
+                "time_created": "2025-07-09T13:49:06.628729Z",
+                "time_updated": "2025-07-09T13:49:06.628729Z"
+            },
+            "layouts": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 170623,
+                    "id_tab": 68525,
+                    "type": "Map",
+                    "id_tool": 115409
+                }
+            ],
+            "viewports": [
+                {
+                    "kind": "ViewportFull",
+                    "center_lng": 8.17033704375126,
+                    "center_lat": 54.0163584169683,
+                    "zoom": 3.574666067357788,
+                    "southWest_lng": -34.61439689268883,
+                    "southWest_lat": 36.10871061718166,
+                    "northEast_lng": 50.955070980193256,
+                    "northEast_lat": 66.55677698521194,
+                    "id": 124976,
+                    "id_profile": 12400,
+                    "lastUpdatedBy": 115409
+                }
+            ],
+            "country_plots": [],
+            "energy_plots": [],
+            "maps": [
+                {
+                    "gridCellLayout": {
+                        "gridColumnStart": 1,
+                        "gridColumnEnd": 97,
+                        "gridRowStart": 1,
+                        "gridRowEnd": 97
+                    },
+                    "id": 115409,
+                    "id_profile": 12400,
+                    "id_tab": 68525,
+                    "id_viewport": 124976,
+                    "time_created": "2025-07-09T13:49:07.807766Z",
+                    "time_updated": "2025-07-09T13:54:05.501442Z",
+                    "title": "New Title",
+                    "titleStyle": null,
+                    "time_offset_mins": 0,
+                    "legend_size": null,
+                    "map_projection": {
+                        "name": "mercator",
+                        "center": null,
+                        "parallels": null
+                    },
+                    "lod_bias": 0,
+                    "layers": [
+                        {
+                            "time_created": "2025-07-09T13:49:07.821869Z",
+                            "time_updated": "2025-07-09T13:54:05.540613Z",
+                            "id": 551414,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115409,
+                            "index": 0,
+                            "opacity": 1,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": "none",
+                            "experimental": false,
+                            "custom_options": {
+                                "line_color": null,
+                                "show_state_border": false,
+                                "map_label_language": null
+                            },
+                            "kind": "BackgroundMapDescription",
+                            "style": "topographique"
+                        },
+                        {
+                            "time_created": "2025-07-09T13:50:20.542076Z",
+                            "time_updated": "2025-07-09T13:54:05.540613Z",
+                            "id": 551416,
+                            "id_profile": 12400,
+                            "id_cartographicmap": 115409,
+                            "index": 2,
+                            "opacity": 0.7,
+                            "show": true,
+                            "calibrated": false,
+                            "vertical_interpolation": null,
+                            "experimental": false,
+                            "custom_options": {
+                                "init_date": null
+                            },
+                            "model": "mix",
+                            "parameter_unit": "prob_tstorm_1h:p",
+                            "ens_select": null,
+                            "show_init_time": null,
+                            "kind": "WmsLayerDescription",
+                            "color_map": "",
+                            "legend_visible": true
+                        }
+                    ],
+                    "drawing": null
+                }
+            ],
+            "notes": [],
+            "plots": [],
+            "location_tables": [],
+            "tephigrams": [],
+            "weather_tables": []
+        }
+    ]
+}

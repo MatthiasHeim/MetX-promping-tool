@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "create-test-cases": "tsx scripts/create_test_cases.ts",
     "prepare": "cd . && husky || echo 'Husky not installed, skipping'"
   },
   "lint-staged": {
@@ -34,6 +35,7 @@
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.0",
     "openai": "^5.5.1",
     "postcss": "^8.5.6",
     "react": "^19.1.0",
@@ -61,6 +63,7 @@
     "jsdom": "^26.1.0",
     "lint-staged": "^15.5.2",
     "prettier": "^3.5.3",
+    "tsx": "^4.20.3",
     "typescript-eslint": "^8.30.1"
   }
 }
