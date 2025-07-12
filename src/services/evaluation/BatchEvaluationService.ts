@@ -223,6 +223,12 @@ export class BatchEvaluationService {
 
       // Parse the JSON from the response using the shared utility for consistency with regular generation
       const parseResult = parseLLMJsonResponse(response.content)
+      
+      // Check if parsing was successful before using the result
+      if (!parseResult.success) {
+        throw new Error(`JSON parsing failed: ${parseResult.error || 'Unknown parsing error'}`)
+      }
+      
       const generatedJson = parseResult.data
 
       return {

@@ -51,6 +51,18 @@ export function parseLLMJsonResponse(content: string): ParsedLLMResponse {
     
     const parsedData = JSON.parse(contentToParse)
     
+    // Enhanced validation: Check if this is an array of layer objects
+    if (Array.isArray(parsedData) && parsedData.length > 0) {
+      const firstItem = parsedData[0]
+      const hasLayerProperties = firstItem && 
+        typeof firstItem === 'object' && 
+        ('kind' in firstItem || 'layer_type' in firstItem || 'id_cartographicmap' in firstItem)
+      
+      if (hasLayerProperties) {
+        console.log('✅ Successfully parsed as layer array with', parsedData.length, 'items')
+      }
+    }
+    
     console.log('✅ Successfully parsed JSON, type:', Array.isArray(parsedData) ? 'array' : typeof parsedData)
     return {
       success: true,
