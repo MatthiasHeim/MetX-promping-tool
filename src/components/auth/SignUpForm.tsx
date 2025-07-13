@@ -90,7 +90,7 @@ export function SignUpForm({ onSwitchToSignIn }: SignUpFormProps) {
         alert('Account created successfully! Please check your email and click the confirmation link before signing in.')
         onSwitchToSignIn()
       }
-    } catch (error) {
+    } catch {
       setSubmitError('An unexpected error occurred')
     } finally {
       setIsLoading(false)

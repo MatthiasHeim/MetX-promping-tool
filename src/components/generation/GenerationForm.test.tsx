@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GenerationForm } from './GenerationForm'
 import type { Model, Prompt } from '../../types/database'
@@ -81,10 +81,11 @@ describe('GenerationForm', () => {
     expect(screen.getByText('Upload Input Image (optional)')).toBeInTheDocument()
     expect(screen.getByText('Select Models')).toBeInTheDocument()
     expect(screen.getByText('Select Prompt Template')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Run' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Generate Dashboard' })).toBeInTheDocument()
   })
 
-  it('displays all available models with checkboxes', () => {
+  it('displays all available models with checkboxes', async () => {
+    const user = userEvent.setup()
     render(
       <GenerationForm
         models={mockModels}
@@ -92,6 +93,10 @@ describe('GenerationForm', () => {
         onGenerate={mockOnGenerate}
       />
     )
+
+    // Expand the additional models section first
+    const expandButton = screen.getByText(/Additional Models/i)
+    await user.click(expandButton)
 
     expect(screen.getByLabelText('GPT-4.1')).toBeInTheDocument()
     expect(screen.getByLabelText('o3')).toBeInTheDocument()
@@ -125,7 +130,7 @@ describe('GenerationForm', () => {
       />
     )
 
-    const generateButton = screen.getByRole('button', { name: 'Run' })
+    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
     await user.click(generateButton)
 
     await waitFor(() => {
@@ -146,7 +151,7 @@ describe('GenerationForm', () => {
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     await user.type(textInput, 'Show temperature data for Switzerland')
 
-    const generateButton = screen.getByRole('button', { name: 'Run' })
+    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
     await user.click(generateButton)
 
     await waitFor(() => {
@@ -206,7 +211,7 @@ describe('GenerationForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Estimated cost exceeds maximum threshold/)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Run' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Generate Dashboard' })).toBeDisabled()
     })
   })
 
@@ -255,7 +260,7 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Run' })
+    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
 
     await user.type(textInput, 'Show temperature data for Switzerland')
     await user.click(gpt4Checkbox)
@@ -287,14 +292,14 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Run' })
+    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
 
     await user.type(textInput, 'Show temperature data')
     await user.click(gpt4Checkbox)
     await user.click(generateButton)
 
-    expect(screen.getByRole('button', { name: 'Running...' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Running...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Generating...' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Generating...' })).toBeDisabled()
   })
 
   it('displays progress information during generation', async () => {
@@ -330,7 +335,7 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Run' })
+    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
 
     await user.type(textInput, 'Show temperature data')
     await user.click(gpt4Checkbox)
@@ -369,7 +374,7 @@ describe('GenerationForm', () => {
 
     const textInput = screen.getByLabelText('Describe your MetX dashboard requirements')
     const gpt4Checkbox = screen.getByLabelText('GPT-4.1')
-    const generateButton = screen.getByRole('button', { name: 'Run' })
+    const generateButton = screen.getByRole('button', { name: 'Generate Dashboard' })
 
     await user.type(textInput, 'Show temperature data for Switzerland')
     await user.click(gpt4Checkbox)

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { PromptService } from './PromptService'
-import type { Prompt } from '../../types/database'
 
 // Mock supabase
 vi.mock('../../lib/supabase', () => ({
@@ -25,6 +24,24 @@ vi.mock('../../lib/supabase', () => ({
             }
           ],
           error: null
+        })),
+        eq: vi.fn(() => ({
+          single: vi.fn(() => ({
+            data: {
+              id: 'test-id-1',
+              name: 'Test Prompt',
+              description: 'A test prompt',
+              template_text: 'Test template: {{user_input}}',
+              json_prefix: '{"test": {',
+              json_suffix: '}}',
+              use_placeholder: true,
+              version: 1,
+              created_by: null,
+              created_at: '2024-01-01T00:00:00Z',
+              updated_at: '2024-01-01T00:00:00Z'
+            },
+            error: null
+          }))
         }))
       })),
       insert: vi.fn(() => ({

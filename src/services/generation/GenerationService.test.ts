@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GenerationService } from './GenerationService'
-import type { Model, CreateGenerationRequest, GenerationProgress } from '../../types/database'
+import type { Model, GenerationProgress } from '../../types/database'
 
 // Mock OpenAI
 vi.mock('openai', () => ({

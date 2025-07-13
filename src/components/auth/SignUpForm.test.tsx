@@ -5,7 +5,30 @@ import { SignUpForm } from './SignUpForm'
 import { AuthService } from '../../services/auth/AuthService'
 
 // Mock the AuthService
-vi.mock('../../services/auth/AuthService')
+vi.mock('../../services/auth/AuthService', () => ({
+  AuthService: {
+    validateEmail: vi.fn((email: string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!email) {
+        return { isValid: false, error: 'Email is required' }
+      }
+      if (!emailRegex.test(email)) {
+        return { isValid: false, error: 'Please enter a valid email address' }
+      }
+      return { isValid: true, error: null }
+    }),
+    validatePassword: vi.fn((password: string) => {
+      if (!password) {
+        return { isValid: false, error: 'Password is required' }
+      }
+      if (password.length < 8) {
+        return { isValid: false, error: 'Password must be at least 8 characters long' }
+      }
+      return { isValid: true, error: null }
+    }),
+    signUp: vi.fn()
+  }
+}))
 
 // Mock the utils
 vi.mock('@/lib/utils', () => ({
@@ -186,7 +209,7 @@ describe('SignUpForm', () => {
       />
     )
 
-    const switchLink = screen.getByText('Sign in here')
+    const switchLink = screen.getByText('Sign in')
     expect(switchLink).toBeInTheDocument()
 
     fireEvent.click(switchLink)

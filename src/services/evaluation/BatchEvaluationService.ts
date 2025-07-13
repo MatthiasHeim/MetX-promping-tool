@@ -71,11 +71,10 @@ export class BatchEvaluationService {
         request.prompt_id, 
         request.model_id, 
         request.judge_prompt_id, 
-        request.judge_model_id, 
-        userId
+        request.judge_model_id
       ).catch(error => {
         console.error('Error in batch evaluation:', error)
-        this.markBatchRunFailed(batchRun.id, error.message)
+        this.markBatchRunFailed(batchRun.id)
       })
 
       return batchRun
@@ -94,8 +93,7 @@ export class BatchEvaluationService {
     promptId: string,
     modelId: string,
     judgePromptId: string | undefined,
-    judgeModelId: string | undefined,
-    userId: string
+    judgeModelId: string | undefined
   ): Promise<void> {
     try {
       // Update status to running
@@ -122,8 +120,7 @@ export class BatchEvaluationService {
           const generationResult = await this.generateResultForTestCase(
             testCase,
             prompt,
-            model,
-            userId
+            model
           )
 
           // Compare with expected JSON using judge model
@@ -192,7 +189,7 @@ export class BatchEvaluationService {
 
     } catch (error) {
       console.error('Error in runBatchEvaluation:', error)
-      await this.markBatchRunFailed(batchRunId, error instanceof Error ? error.message : 'Unknown error')
+      await this.markBatchRunFailed(batchRunId)
     }
   }
 
@@ -202,8 +199,7 @@ export class BatchEvaluationService {
   private static async generateResultForTestCase(
     testCase: EvaluationTestCase,
     prompt: Prompt,
-    model: Model,
-    _userId: string
+    model: Model
   ): Promise<any> {
     try {
       // Process the prompt template with the test case user prompt
@@ -376,7 +372,7 @@ Example response:
         } else {
           // Try multiple JSON formats
           try {
-            const jsonMatch = responseText.match(/[\[\{][\s\S]*[\]\}]/);
+            const jsonMatch = responseText.match(/[[{][\s\S]*[\]}]/);
             if (jsonMatch) {
               const parsedJson = JSON.parse(jsonMatch[0]);
               
@@ -496,7 +492,7 @@ Example response:
   /**
    * Mark a batch run as failed
    */
-  private static async markBatchRunFailed(id: string, _errorMessage: string): Promise<void> {
+  private static async markBatchRunFailed(id: string): Promise<void> {
     await this.updateBatchRun(id, {
       status: 'failed',
       completed_at: new Date().toISOString()

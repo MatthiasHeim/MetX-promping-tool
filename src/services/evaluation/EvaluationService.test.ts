@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { EvaluationService } from './EvaluationService'
-import type { GenerationResult, EvaluationResult, EvaluationCriteria } from './EvaluationService'
+import type { GenerationResult } from './EvaluationService'
 
 describe('EvaluationService', () => {
   beforeEach(() => {

@@ -60,7 +60,7 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
   }
 
   // Helper function to get location coordinates (simplified version from GenerationsView)
-  const getLocationCoordinates = (_userInput: string) => {
+  const getLocationCoordinates = () => {
     // Default to Switzerland for now - could be enhanced later
     return {
       center_lat: 47.3769,
@@ -360,8 +360,8 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
   )
 }
 
-export function EvaluationComparisonPanel({ results: _results, className = '', selectedRunId, onEvaluationComplete }: EvaluationComparisonPanelProps) {
-  // Note: results parameter kept for compatibility but not used in current implementation
+export function EvaluationComparisonPanel({ className = '', selectedRunId, onEvaluationComplete }: Omit<EvaluationComparisonPanelProps, 'results'>) {
+  // Note: results parameter removed since it's not used in current implementation
   const [evaluationState, setEvaluationState] = useState<BatchEvaluationState>({
     isRunning: false,
     summary: null,

@@ -146,6 +146,9 @@ describe('PromptService Versioning', () => {
         updated_at: '2023-01-03T00:00:00.000Z'
       }
 
+      // Mock getPromptVersion to return the target version
+      vi.spyOn(PromptService, 'getPromptVersion').mockResolvedValue(mockVersions[1])
+
       // Mock the RPC call
       vi.mocked(supabase.rpc).mockResolvedValue({ 
         data: true, 
@@ -169,26 +172,17 @@ describe('PromptService Versioning', () => {
     })
 
     it('should handle rollback errors', async () => {
-      const mockError = { 
-        message: 'Version not found',
-        details: '',
-        hint: '',
-        code: 'P0001',
-        name: 'PostgrestError'
-      }
-      vi.mocked(supabase.rpc).mockResolvedValue({ 
-        data: null, 
-        error: mockError,
-        count: null,
-        status: 400,
-        statusText: 'Bad Request'
-      })
+      // Mock getPromptVersion to return null for non-existent version
+      vi.spyOn(PromptService, 'getPromptVersion').mockResolvedValue(null)
 
       await expect(PromptService.rollbackPromptToVersion(mockPromptId, 999))
-        .rejects.toThrow('Failed to rollback prompt: Version not found')
+        .rejects.toThrow('Version 999 not found for prompt test-prompt-id')
     })
 
-    it('should handle error when fetching updated prompt after rollback', async () => {
+    it('should handle error when prompt not found during rollback', async () => {
+      // Mock getPromptVersion to return a version (so rollback can proceed)
+      vi.spyOn(PromptService, 'getPromptVersion').mockResolvedValue(mockVersions[1])
+      
       // Mock successful RPC call
       vi.mocked(supabase.rpc).mockResolvedValue({ 
         data: true, 
@@ -202,7 +196,7 @@ describe('PromptService Versioning', () => {
       vi.spyOn(PromptService, 'fetchPromptById').mockResolvedValue(null)
 
       await expect(PromptService.rollbackPromptToVersion(mockPromptId, 1))
-        .rejects.toThrow('Failed to fetch updated prompt after rollback')
+        .rejects.toThrow('Prompt with id test-prompt-id not found')
     })
   })
 

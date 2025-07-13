@@ -49,7 +49,7 @@ export class AuthService {
         user: data.user,
         error,
       }
-    } catch (error) {
+    } catch {
       return {
         user: null,
         error: { message: 'An unexpected error occurred during sign up' },
@@ -68,7 +68,7 @@ export class AuthService {
         user: data.user,
         error,
       }
-    } catch (error) {
+    } catch {
       return {
         user: null,
         error: { message: 'An unexpected error occurred during sign in' },
@@ -80,7 +80,7 @@ export class AuthService {
     try {
       const { error } = await supabase.auth.signOut()
       return { error }
-    } catch (error) {
+    } catch {
       return {
         error: { message: 'An unexpected error occurred during sign out' },
       }
@@ -95,7 +95,7 @@ export class AuthService {
         user: data.user,
         error,
       }
-    } catch (error) {
+    } catch {
       return {
         user: null,
         error: { message: 'An unexpected error occurred while getting user' },

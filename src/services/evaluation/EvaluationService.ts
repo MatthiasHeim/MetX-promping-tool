@@ -175,7 +175,7 @@ export class EvaluationService {
         }
         isValidJson = true
       }
-    } catch (error) {
+    } catch {
       isValidJson = false
     }
     
