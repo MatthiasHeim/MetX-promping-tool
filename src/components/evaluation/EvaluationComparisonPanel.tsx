@@ -3,6 +3,7 @@ import { BatchEvaluationService } from '../../services/evaluation/BatchEvaluatio
 import { EvaluationTestCaseService } from '../../services/evaluation/EvaluationTestCaseService'
 import { PromptService } from '../../services/prompts/PromptService'
 import { ModelService } from '../../services/models/ModelService'
+import { createDownloadableJson } from '../../utils/dashboardProcessing'
 import type { 
   BatchEvaluationSummary, 
   BatchEvaluationProgress, 
@@ -46,11 +47,12 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const downloadJson = (json: any, filename: string) => {
-    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
+    // Use shared utility to create validated downloadable JSON
+    const { blob, filename: validatedFilename } = createDownloadableJson(json, filename)
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = filename
+    link.download = validatedFilename
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

@@ -5,6 +5,7 @@ import { ModelService } from '../../services/models/ModelService'
 import { UserInputService } from '../../services/inputs/UserInputService'
 import { AuthService } from '../../services/auth/AuthService'
 import { PromptVersionHistory } from './PromptVersionHistory'
+import { createDownloadableJson } from '../../utils/dashboardProcessing'
 import type { GenerationResult, Prompt, Model, UserInput } from '../../types/database'
 
 interface EnrichedGenerationResult extends GenerationResult {
@@ -369,18 +370,24 @@ export const GenerationsView: React.FC = () => {
 
   const handleDownloadJson = (result: EnrichedGenerationResult) => {
     try {
-      const completeJson = constructCompleteJson(result.raw_json, result.prompt!, result.user_input?.text)
-      const blob = new Blob([completeJson], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
+      const completeJsonString = constructCompleteJson(result.raw_json, result.prompt!, result.user_input?.text)
+      const parsedJson = JSON.parse(completeJsonString)
       
+      // Use shared utility to create validated downloadable JSON
+      const { blob, filename } = createDownloadableJson(
+        parsedJson, 
+        `metx-dashboard-${result.model?.name || result.model_id}-${Date.now()}.json`
+      )
+      
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `metx-dashboard-${result.model?.name || result.model_id}-${Date.now()}.json`
+      link.download = filename
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
-      console.log('JSON downloaded')
+      console.log('Validated JSON downloaded')
     } catch (error) {
       console.error('Failed to download JSON:', error)
       alert('Failed to download JSON. Please try again.')
@@ -759,12 +766,15 @@ export const GenerationsView: React.FC = () => {
                 <div className="pt-3 border-t border-gray-100 space-y-2">
                   <button
                     onClick={() => {
-                      // Download just the raw layers JSON
-                      const blob = new Blob([JSON.stringify(result.raw_json, null, 2)], { type: 'application/json' })
+                      // Download validated raw layers JSON
+                      const { blob, filename } = createDownloadableJson(
+                        result.raw_json, 
+                        `metx-layers-${result.model?.name || result.model_id}-${Date.now()}.json`
+                      )
                       const url = URL.createObjectURL(blob)
                       const link = document.createElement('a')
                       link.href = url
-                      link.download = `metx-layers-${result.model?.name || result.model_id}-${Date.now()}.json`
+                      link.download = filename
                       document.body.appendChild(link)
                       link.click()
                       document.body.removeChild(link)

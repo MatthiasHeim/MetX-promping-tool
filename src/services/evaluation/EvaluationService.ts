@@ -10,6 +10,8 @@
  * - Performance metrics
  */
 
+import { processDashboardForEvaluation } from '../../utils/dashboardProcessing'
+
 export interface GenerationResult {
   model_id: string
   user_input: string
@@ -147,8 +149,21 @@ export class EvaluationService {
     
     // ALWAYS prioritize final_json if available (complete JSON with prefix/suffix)
     // This is the actual JSON that will be used by MetX
-    const jsonToAnalyze = finalJson || generatedJson
+    let jsonToAnalyze = finalJson || generatedJson
     const isUsingFinalJson = !!finalJson
+    
+    // Process the dashboard through validation to ensure it's MetX-ready
+    let dashboardProcessingResult = null
+    if (jsonToAnalyze && typeof jsonToAnalyze === 'object') {
+      try {
+        dashboardProcessingResult = processDashboardForEvaluation(jsonToAnalyze)
+        // Use the processed/fixed dashboard for analysis
+        jsonToAnalyze = dashboardProcessingResult.dashboard
+      } catch (error) {
+        console.warn('Dashboard processing failed during evaluation:', error)
+        // Continue with original JSON if processing fails
+      }
+    }
     
     // Check if the JSON is valid first (basic JSON validity)
     let isValidJson = false
@@ -203,18 +218,31 @@ export class EvaluationService {
       score = 0.5 + (requiredFields.length / this.REQUIRED_METX_FIELDS.length) * 0.5
     }
 
-    // Generate appropriate rationale
+    // Generate appropriate rationale including dashboard validation results
     let rationale = ''
+    let validationSuffix = ''
+    
+    // Include validation results if dashboard processing was performed
+    if (dashboardProcessingResult) {
+      const { validation, wasFixed, fixesSummary } = dashboardProcessingResult
+      if (wasFixed) {
+        validationSuffix = ` (${fixesSummary.join('; ')})`
+      }
+      if (validation.errors.length > 0) {
+        validationSuffix += ` [Had ${validation.errors.length} validation errors that were fixed]`
+      }
+    }
+    
     if (!isValidJson) {
       rationale = isUsingFinalJson 
         ? 'Invalid JSON structure - cannot be uploaded to MetX'
         : 'Invalid JSON structure in raw LLM output'
     } else if (hasMetXStructure) {
-      rationale = 'Valid MetX JSON structure - ready for upload'
+      rationale = `Valid MetX JSON structure - ready for upload${validationSuffix}`
     } else if (score >= 0.7) {
-      rationale = `Valid JSON with most required fields${missingFields.length > 0 ? `, missing: ${missingFields.join(', ')}` : ''}`
+      rationale = `Valid JSON with most required fields${missingFields.length > 0 ? `, missing: ${missingFields.join(', ')}` : ''}${validationSuffix}`
     } else {
-      rationale = `Valid JSON but missing required fields: ${missingFields.join(', ')}`
+      rationale = `Valid JSON but missing required fields: ${missingFields.join(', ')}${validationSuffix}`
     }
 
     const result: StructureQualityResult = {

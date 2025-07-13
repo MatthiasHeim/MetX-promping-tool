@@ -16,6 +16,7 @@ import { PromptService } from './services/prompts/PromptService'
 import { ModelService } from './services/models/ModelService'
 import { PromptVersionHistory } from './components/generation/PromptVersionHistory'
 import { parseLLMJsonResponse } from './utils/jsonParsing'
+import { processDashboardForGeneration, createDownloadableJson } from './utils/dashboardProcessing'
 import type { Model, Prompt } from './types/database'
 import type { EvaluationResult } from './services/evaluation/EvaluationService'
 
@@ -470,20 +471,27 @@ function App() {
     }
   }
 
-  // Helper function to download JSON
+  // Helper function to download JSON with validation
   const handleDownloadJson = (result: any, prompt: Prompt, userInput?: string) => {
     try {
-      const completeJson = constructCompleteJson(result.raw_json, prompt, userInput)
-      const blob = new Blob([completeJson], { type: 'application/json' })
+      const completeJsonString = constructCompleteJson(result.raw_json, prompt, userInput)
+      const parsedJson = JSON.parse(completeJsonString)
+      
+      // Use shared utility to create validated downloadable JSON
+      const { blob, filename } = createDownloadableJson(
+        parsedJson, 
+        `metx-dashboard-${result.model_name}-${Date.now()}.json`
+      )
+      
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `metx-dashboard-${result.model_name}-${Date.now()}.json`
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      console.log('JSON downloaded')
+      console.log('Validated JSON downloaded')
     } catch (error) {
       console.error('Failed to download JSON:', error)
     }
@@ -539,6 +547,7 @@ function App() {
       const generationResultsForDB = generationResult.results.map((result: any) => {
         let rawLlmOutput: any
         let final_json: any
+        let validationResults: { errors: string[], warnings: string[], isValid: boolean } | null = null
         
         if (result.success && result.content) {
           // Use the shared JSON parsing utility for consistency with evaluation
@@ -572,7 +581,21 @@ function App() {
             // Construct complete JSON with prefix and suffix
             const completeJsonString = constructCompleteJson(layersContent, data.selectedPrompt, data.text)
             try {
-              final_json = JSON.parse(completeJsonString)
+              const parsedJson = JSON.parse(completeJsonString)
+              
+              // Step: Process and validate dashboard structure using shared utility
+              const processing = processDashboardForGeneration(parsedJson)
+              
+              // Store validation results for database
+              validationResults = {
+                errors: processing.validation.errors,
+                warnings: processing.validation.warnings,
+                isValid: processing.validation.isValid
+              }
+              
+              // Use the processed dashboard as final_json
+              final_json = processing.dashboard
+              
             } catch (jsonError) {
               console.error('Failed to parse complete JSON string:', jsonError)
               console.log('Complete JSON string that failed:', completeJsonString.substring(0, 500) + '...')
@@ -605,7 +628,11 @@ function App() {
           raw_llm_response: result.content || null, // Store complete raw LLM response
           final_json: final_json,
           cost_chf: result.cost_chf,
-          latency_ms: result.latency_ms
+          latency_ms: result.latency_ms,
+          validation_errors: validationResults?.errors || null,
+          validation_warnings: validationResults?.warnings || null,
+          validation_passed: validationResults?.isValid || false,
+          validation_timestamp: new Date().toISOString()
         }
       })
       
@@ -1387,12 +1414,15 @@ function App() {
                               </button>
                               <button 
                                 onClick={() => {
-                                  // Download just the raw layers JSON
-                                  const blob = new Blob([JSON.stringify(result.raw_json, null, 2)], { type: 'application/json' })
+                                  // Download validated raw layers JSON
+                                  const { blob, filename } = createDownloadableJson(
+                                    result.raw_json, 
+                                    `metx-layers-${result.model_name}-${Date.now()}.json`
+                                  )
                                   const url = URL.createObjectURL(blob)
                                   const link = document.createElement('a')
                                   link.href = url
-                                  link.download = `metx-layers-${result.model_name}-${Date.now()}.json`
+                                  link.download = filename
                                   document.body.appendChild(link)
                                   link.click()
                                   document.body.removeChild(link)

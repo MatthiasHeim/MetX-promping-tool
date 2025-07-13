@@ -171,6 +171,10 @@ export interface Database {
           performance_score: number | null
           performance_rationale: string | null
           evaluation_timestamp: string | null
+          validation_errors: string[] | null
+          validation_warnings: string[] | null
+          validation_passed: boolean | null
+          validation_timestamp: string | null
           created_at: string
         }
         Insert: {
@@ -202,6 +206,10 @@ export interface Database {
           performance_score?: number | null
           performance_rationale?: string | null
           evaluation_timestamp?: string | null
+          validation_errors?: string[] | null
+          validation_warnings?: string[] | null
+          validation_passed?: boolean | null
+          validation_timestamp?: string | null
           created_at?: string
         }
         Update: {
@@ -223,6 +231,10 @@ export interface Database {
           performance_score?: number | null
           performance_rationale?: string | null
           evaluation_timestamp?: string | null
+          validation_errors?: string[] | null
+          validation_warnings?: string[] | null
+          validation_passed?: boolean | null
+          validation_timestamp?: string | null
         }
       }
       audit_logs: {
