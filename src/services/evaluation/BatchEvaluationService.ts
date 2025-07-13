@@ -271,9 +271,9 @@ export class BatchEvaluationService {
         }
         judgePromptText = prompt.template_text
       } else {
-        // Default judge prompt
-        judgePromptText = `
-You are an expert evaluator comparing AI-generated MetX weather dashboard configurations.
+        // Default judge prompt (matches database version)
+        judgePromptText = `EVALUATION TASK: Compare AI-generated weather dashboard configurations.
+IMPORTANT: You are an EVALUATOR, not a JSON generator. Do NOT create layer JSON.
 
 USER REQUEST: "{{user_input}}"
 
@@ -283,22 +283,27 @@ EXPECTED JSON (Reference):
 GENERATED JSON (To Evaluate):
 {{generated_json}}
 
-Please evaluate how well the generated JSON matches the expected JSON for this user request. Consider:
+Evaluate how well the generated JSON matches the expected JSON. Consider:
+1. **Weather Layers**: Correct weather parameters included?
+2. **Layer Configuration**: Proper layer settings and parameters?
+3. **Structure**: Valid JSON structure and completeness?
+4. **Additional Value**: Useful additional layers beyond minimum?
 
-1. **Weather Layers**: Are the correct weather parameters included?
-2. **Geographic Coverage**: Does it cover the right region/area?
-3. **Layer Configuration**: Are layers properly configured with correct parameters?
-4. **Structure**: Is the JSON structure valid and complete?
-5. **Additional Value**: Does it include useful additional layers beyond the minimum?
+Penalize missing layers much more than additional layers that are not part of the original JSON. As long as the map depicts what the user asked for, the score should be above 8.
 
-Provide:
-1. A similarity score from 1-10 (10 = perfect match, 1 = completely different)  
-2. A brief explanation of differences and why you gave this score
+CRITICAL INSTRUCTIONS:
+- You are EVALUATING, not generating new JSON
+- Do NOT return layer configurations
+- Do NOT return JSON arrays or objects
+- ONLY return the XML format below
 
-Respond in this exact format:
-SCORE: [number]
-DETAILS: [explanation]
-`
+REQUIRED RESPONSE FORMAT (copy exactly):
+<score>8</score>
+<details>Your evaluation explanation here</details>
+
+Example response:
+<score>7</score>
+<details>Generated JSON has correct weather parameters but missing opacity settings and has different color_map values than expected.</details>`
       }
 
       // Get judge model
@@ -347,7 +352,7 @@ DETAILS: [explanation]
       let details = 'No explanation provided'
       let parseSuccess = false
 
-      // First try XML format
+      // First try XML format (primary expected format based on judge prompt)
       const scoreMatchXML = responseText.match(/<score>(\d+)<\/score>/i)
       const detailsMatchXML = responseText.match(/<details>(.*?)<\/details>/si)
 
@@ -357,63 +362,76 @@ DETAILS: [explanation]
         parseSuccess = true
         console.log('✅ Parsed XML format - Score:', score, 'Details length:', details.length)
       } else {
-        // Try multiple JSON formats
-        try {
-          const jsonMatch = responseText.match(/[\[\{][\s\S]*[\]\}]/);
-          if (jsonMatch) {
-            const parsedJson = JSON.parse(jsonMatch[0]);
-            
-            // Format 1: Standard {score, details}
-            if (typeof parsedJson.score === 'number' && typeof parsedJson.details === 'string') {
-              score = parsedJson.score;
-              details = parsedJson.details;
-              parseSuccess = true;
-              console.log('✅ Parsed JSON format (standard) - Score:', score, 'Details length:', details.length);
-            }
-            // Format 2: Alternative field names {similarity_score, explanation}
-            else if (typeof parsedJson.similarity_score === 'number' && typeof parsedJson.explanation === 'string') {
-              score = parsedJson.similarity_score;
-              details = parsedJson.explanation;
-              parseSuccess = true;
-              console.log('✅ Parsed JSON format (similarity_score/explanation) - Score:', score, 'Details length:', details.length);
-            }
-            // Format 3: Nested array format [{"evaluation": {"score": ..., "details": ...}}]
-            else if (Array.isArray(parsedJson) && parsedJson.length > 0 && parsedJson[0].evaluation) {
-              const evaluation = parsedJson[0].evaluation;
-              if (typeof evaluation.score === 'number' && typeof evaluation.details === 'string') {
-                score = evaluation.score;
-                details = evaluation.details;
+        // Fallback: Try to parse legacy text format (SCORE: X DETAILS: Y)
+        const textScoreMatch = responseText.match(/SCORE:\s*(\d+)/i)
+        const textDetailsMatch = responseText.match(/DETAILS:\s*(.*?)(?=\n\s*$|$)/si)
+        
+        if (textScoreMatch) {
+          score = parseInt(textScoreMatch[1])
+          if (textDetailsMatch) {
+            details = textDetailsMatch[1].trim()
+          }
+          parseSuccess = true
+          console.log('✅ Parsed legacy text format - Score:', score, 'Details length:', details.length)
+        } else {
+          // Try multiple JSON formats
+          try {
+            const jsonMatch = responseText.match(/[\[\{][\s\S]*[\]\}]/);
+            if (jsonMatch) {
+              const parsedJson = JSON.parse(jsonMatch[0]);
+              
+              // Format 1: Standard {score, details}
+              if (typeof parsedJson.score === 'number' && typeof parsedJson.details === 'string') {
+                score = parsedJson.score;
+                details = parsedJson.details;
                 parseSuccess = true;
-                console.log('✅ Parsed JSON format (nested array) - Score:', score, 'Details length:', details.length);
+                console.log('✅ Parsed JSON format (standard) - Score:', score, 'Details length:', details.length);
+              }
+              // Format 2: Alternative field names {similarity_score, explanation}
+              else if (typeof parsedJson.similarity_score === 'number' && typeof parsedJson.explanation === 'string') {
+                score = parsedJson.similarity_score;
+                details = parsedJson.explanation;
+                parseSuccess = true;
+                console.log('✅ Parsed JSON format (similarity_score/explanation) - Score:', score, 'Details length:', details.length);
+              }
+              // Format 3: Nested array format [{"evaluation": {"score": ..., "details": ...}}]
+              else if (Array.isArray(parsedJson) && parsedJson.length > 0 && parsedJson[0].evaluation) {
+                const evaluation = parsedJson[0].evaluation;
+                if (typeof evaluation.score === 'number' && typeof evaluation.details === 'string') {
+                  score = evaluation.score;
+                  details = evaluation.details;
+                  parseSuccess = true;
+                  console.log('✅ Parsed JSON format (nested array) - Score:', score, 'Details length:', details.length);
+                }
+              }
+              // Format 4: Direct nested {evaluation: {score, details}}
+              else if (parsedJson.evaluation && typeof parsedJson.evaluation.score === 'number' && typeof parsedJson.evaluation.details === 'string') {
+                score = parsedJson.evaluation.score;
+                details = parsedJson.evaluation.details;
+                parseSuccess = true;
+                console.log('✅ Parsed JSON format (nested evaluation) - Score:', score, 'Details length:', details.length);
               }
             }
-            // Format 4: Direct nested {evaluation: {score, details}}
-            else if (parsedJson.evaluation && typeof parsedJson.evaluation.score === 'number' && typeof parsedJson.evaluation.details === 'string') {
-              score = parsedJson.evaluation.score;
-              details = parsedJson.evaluation.details;
-              parseSuccess = true;
-              console.log('✅ Parsed JSON format (nested evaluation) - Score:', score, 'Details length:', details.length);
-            }
+          } catch (jsonError) {
+            console.log('❌ JSON parsing failed:', jsonError);
           }
-        } catch (jsonError) {
-          console.log('❌ JSON parsing failed:', jsonError);
-        }
 
-        // Fallback patterns if JSON parsing didn't work
-        if (!parseSuccess) {
-          const scorePattern = responseText.match(/(?:score|similarity_score)[:\s]*(\d+)/i)
-          const detailsPattern = responseText.match(/(?:details|explanation)[:\s]*['"](.*?)['"]/si)
-          
-          if (scorePattern && detailsPattern) {
-            score = parseInt(scorePattern[1])
-            details = detailsPattern[1].trim()
-            parseSuccess = true
-            console.log('✅ Parsed with fallback patterns - Score:', score, 'Details length:', details.length)
-          } else {
-            console.log('❌ All parsing methods failed')
-            // Instead of defaulting to score 5, mark as failed
-            score = null
-            details = `Parsing failed. Raw response: ${responseText.substring(0, 200)}...`
+          // Fallback patterns if JSON parsing didn't work
+          if (!parseSuccess) {
+            const scorePattern = responseText.match(/(?:score|similarity_score)[:\s]*(\d+)/i)
+            const detailsPattern = responseText.match(/(?:details|explanation)[:\s]*['"](.*?)['"]/si)
+            
+            if (scorePattern && detailsPattern) {
+              score = parseInt(scorePattern[1])
+              details = detailsPattern[1].trim()
+              parseSuccess = true
+              console.log('✅ Parsed with fallback patterns - Score:', score, 'Details length:', details.length)
+            } else {
+              console.log('❌ All parsing methods failed')
+              // Instead of defaulting to score 5, mark as failed
+              score = null
+              details = `⚠️ Judge response parsing failed\nJudge Evaluation:\n${responseText.substring(0, 500)}${responseText.length > 500 ? '...' : ''}`
+            }
           }
         }
       }
@@ -422,7 +440,7 @@ DETAILS: [explanation]
       if (score !== null && (score < 1 || score > 10)) {
         console.log('⚠️ Score out of range, marking as failed:', score)
         score = null
-        details = `Invalid score (${score}) out of range 1-10. Raw response: ${responseText.substring(0, 200)}...`
+        details = `Invalid score (${score}) out of range 1-10.\nJudge Evaluation:\n${responseText.substring(0, 500)}${responseText.length > 500 ? '...' : ''}`
       }
 
       console.log('Final result - Score:', score, 'Details length:', details.length, 'Parse success:', parseSuccess)
