@@ -364,9 +364,11 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Data Flow</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• User input → AI model</li>
-                <li>• Raw JSON → Template wrapping</li>
+                <li>• User input → Prompt template</li>
+                <li>• Template + input → AI model</li>
+                <li>• Raw JSON → Validation & wrapping</li>
                 <li>• Final JSON → MetX dashboard</li>
+                <li>• Evaluation → Performance metrics</li>
                 <li>• Ratings → Model optimization</li>
               </ul>
             </div>

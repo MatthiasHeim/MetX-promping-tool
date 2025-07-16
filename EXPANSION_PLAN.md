@@ -3,7 +3,15 @@
 
 ## 1. Vision & Introduction
 
-This document outlines the plan to expand the MetX platform by integrating a "Metax Assistant" chatbot into the main MetX website. The primary goal is to allow users to generate complex weather dashboards using simple, natural language commands.
+This document outlines the proposal for implementing dashboard creation capabilities into the MetX platform. The primary goal is to provide a comprehensive AI-powered prompting tool that allows users to generate complex weather dashboards using natural language commands, with robust evaluation and production deployment capabilities.
+
+### Key Proposal Components:
+- **Chatbot Integration** with access to MetX documentation (updated daily from website)
+- **MetX Prompting Tool** for prompt evaluation and model deployment to production
+- **Advanced JSON Processing** with parsing and validation ensuring all required dashboard fields
+- **Production Deployment** on Vercel with Supabase database
+- **Turnkey Solution** with repository delivery for self-hosted deployment
+- **Usage Credits** including 50 CHF for LLM usage (sufficient for months of user testing)
 
 The expansion will be delivered in two main phases:
 1.  **Dashboard Generation:** The chatbot will handle a user's request, call this platform's API to generate a complete `metx.json` dashboard, and present it to the user.
@@ -74,12 +82,14 @@ This platform will be enhanced with a production-ready API.
         6.  Retrieve the `json_prefix` and `json_suffix` from the production prompt in the database.
         7.  Inject the extracted (or default) viewport configuration into the appropriate section of the JSON prefix.
         8.  Combine prefix (with viewport), validated layers, and suffix to form the final `metx.json`.
-        9.  Return the final JSON in the response.
+        9.  **Enhanced JSON Validation:** Ensure dashboard contains all required fields for MetX compatibility.
+        10. Return the final JSON in the response.
 
 ### 3.3. Meteomatics Frontend
 
 -   **Role:** The existing Meteomatics web application will need a mechanism to accept a `metx.json` object and render it as a dashboard. This is likely a function call or a simple API endpoint on the frontend service.
 -   **Integration:** The chatbot will trigger this mechanism after receiving the `metx.json` from the Generation Platform. This provides a seamless UX where the user interacts with the chatbot, and the dashboard appears to be generated directly from that interaction.
+-   **Dashboard Loading API:** Direct integration capability where dashboards can be sent in the current session and loaded immediately without requiring separate save/load operations.
 
 ---
 
@@ -99,6 +109,15 @@ This platform will be enhanced with a production-ready API.
 3.  **Add "Production" Selection to UI:**
     -   **Database:** Add a new boolean column, `is_production`, to the `prompts` and `models` tables in Supabase. Ensure only one prompt and one model can be marked as production at any given time using database constraints or application logic.
     -   **UI:** In the frontend, add a button or toggle next to each prompt and model in their respective lists. This control will allow an admin user to set a specific prompt/model combination as the "production" version. This action should trigger an API call to update the `is_production` flags in the database.
+
+4.  **Enhanced JSON Processing & Validation:**
+    -   **Advanced JSON Parser:** Implement robust LLM output parsing to handle various response formats
+    -   **Comprehensive Validation:** Ensure all required MetX dashboard fields are present and correctly formatted
+    -   **Error Recovery:** Implement fallback mechanisms for malformed JSON responses
+
+5.  **Documentation Integration:**
+    -   **Daily Documentation Sync:** Automated system to download latest MetX documentation from website daily
+    -   **Knowledge Base Integration:** Structured documentation storage for chatbot access
 
 
 ## 5. Location Extraction Technical Details
@@ -146,7 +165,47 @@ If location is ambiguous (e.g., "Paris"), choose the most prominent/likely optio
    }
    ```
 
-## 6. Recommended UX Flow (Chatbot)
+## 6. Deployment & Infrastructure
+
+### 6.1. Production Deployment
+- **Platform:** Vercel hosting with optimized build configuration
+- **Database:** Supabase with production-grade performance and security
+- **API Configuration:** Secure API endpoints with authentication and rate limiting
+- **Monitoring:** Comprehensive logging and performance monitoring
+
+### 6.2. Turnkey Solution Delivery
+- **Repository Access:** Complete source code with deployment instructions
+- **Self-Hosted Option:** Configuration for deployment on customer infrastructure
+- **Documentation:** Comprehensive setup and maintenance guides
+- **Support:** Initial setup assistance and troubleshooting
+
+### 6.3. Usage & Costs
+- **Initial Credits:** 50 CHF for LLM usage included
+- **Testing Duration:** Sufficient credits for several months of user testing
+- **Production Scaling:** Integration with OpenRouter or Google Vertex AI for long-term usage
+- **Cost Monitoring:** Built-in usage tracking and budget alerts
+
+## 7. Scope & Limitations
+
+### 7.1. Current Scope
+- **Dashboard Generation:** Create complete dashboards from natural language prompts
+- **Location Intelligence:** Automatic location extraction and viewport configuration
+- **JSON Validation:** Comprehensive validation ensuring MetX compatibility
+- **Production Deployment:** Ready-to-use system with monitoring and scaling
+
+### 7.2. Explicitly Out of Scope
+- **Dashboard Updates:** Modifying existing dashboards (future enhancement)
+- **Real-time Collaboration:** Multi-user editing capabilities
+- **Advanced Analytics:** Usage analytics beyond basic monitoring
+- **Custom Integrations:** Specific third-party integrations beyond standard APIs
+
+### 7.3. Future Expansion Opportunities
+- **Dashboard Modification:** "Add temperature layer" or "Change to satellite view"
+- **Collaborative Features:** Shared dashboards and team workspaces
+- **Advanced Analytics:** Usage patterns and optimization recommendations
+- **Multi-tenant Support:** Enterprise-grade user management
+
+## 8. Recommended UX Flow (Chatbot)
 
 **Objective:** Ensure the user feels in control and the generation process is transparent.
 
@@ -163,3 +222,11 @@ If location is ambiguous (e.g., "Paris"), choose the most prominent/likely optio
 > *(After receiving the JSON and successfully calling the Meteomatics frontend API)*
 
 > **Metax Assistant:** "All set! Your new dashboard is ready and has been loaded. You can ask me to make changes, like adding new layers or changing the location."
+
+**Enhanced Location Processing Example:**
+
+> **User:** "I want a dashboard for a wind farm in Northern Germany"
+
+> **Metax Assistant:** "I'll create a dashboard optimized for wind farm operations in Northern Germany. Processing both the weather layers and the specific location..." *(Parallel processing of layer generation and location extraction)*
+
+> **Metax Assistant:** "Your dashboard is ready! I've focused on Northern Germany with wind-specific layers including wind speed, direction, and turbulence data. The viewport is optimized for the region you specified."
