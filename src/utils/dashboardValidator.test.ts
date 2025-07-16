@@ -647,4 +647,54 @@ describe('Dashboard Validator', () => {
     // Check that text_size was added
     expect(layer.text_size).toBe(16)
   })
+
+  it('should fix SymbolLayerDescription layer_type in custom_options', () => {
+    const dashboard = {
+      id: 89764,
+      title: 'Generated Dashboard',
+      tabs: [{
+        id: 72137,
+        maps: [{
+          id: 68154,
+          layers: [{
+            kind: 'SymbolLayerDescription',
+            show: true,
+            index: 4,
+            model: 'mix',
+            opacity: 1,
+            custom_options: {
+              icon_size: 0.5,
+              layer_type: 'WeatherSymbol',  // Should be at layer level
+              show_only_significant_weather: true
+            },
+            parameter_unit: 'weather_code_1h:idx',
+            id: 550004,
+            id_profile: 89764,
+            id_cartographicmap: 68154,
+            time_created: '2025-07-16T07:36:23.776Z',
+            time_updated: '2025-07-16T07:36:23.776Z',
+            calibrated: null,
+            experimental: false,
+            vertical_interpolation: null,
+            ens_select: null,
+            show_init_time: false,
+            step: 25
+          }]
+        }]
+      }]
+    }
+
+    const result = validateAndFixDashboard(dashboard)
+    
+    // Check that layer_type was moved from custom_options to layer level
+    const layer = result.dashboard.tabs[0].maps[0].layers[0]
+    expect(layer.layer_type).toBe('WeatherSymbol')
+    
+    // Check that layer_type was removed from custom_options
+    expect(layer.custom_options.layer_type).toBeUndefined()
+    
+    // Check that other custom_options fields remain
+    expect(layer.custom_options.icon_size).toBe(0.5)
+    expect(layer.custom_options.show_only_significant_weather).toBe(true)
+  })
 })

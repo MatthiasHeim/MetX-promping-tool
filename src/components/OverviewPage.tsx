@@ -131,7 +131,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
           🛠️ Tool Features & Capabilities
         </h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-blue-600 mb-3 flex items-center">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,6 +189,36 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
               <li>• Automated evaluation scoring</li>
               <li>• Cost and latency tracking</li>
               <li>• Output comparison and validation</li>
+            </ul>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-indigo-600 mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Automated Evaluation
+            </h3>
+            <ul className="space-y-2 text-gray-700 text-sm">
+              <li>• Batch testing with AI judge models</li>
+              <li>• Systematic scoring across test cases</li>
+              <li>• Progress tracking and success rates</li>
+              <li>• Performance comparison metrics</li>
+            </ul>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-teal-600 mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              JSON Validation
+            </h3>
+            <ul className="space-y-2 text-gray-700 text-sm">
+              <li>• Schema validation for MetX compatibility</li>
+              <li>• Parameter completeness checking</li>
+              <li>• Structure and format verification</li>
+              <li>• Error detection and reporting</li>
             </ul>
           </div>
         </div>
@@ -314,10 +344,12 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">AI Models</h3>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• OpenAI GPT-4.1</li>
-                <li>• OpenAI o3</li>
                 <li>• OpenAI GPT-4o</li>
-                <li>• Future: Claude, Gemini</li>
+                <li>• OpenAI o3</li>
+                <li>• OpenAI o3-mini</li>
+                <li>• Claude Sonnet 4</li>
+                <li>• Gemini 2.5 Pro</li>
+                <li>• Grok 4</li>
               </ul>
             </div>
             <div>

@@ -100,31 +100,6 @@ This platform will be enhanced with a production-ready API.
     -   **Database:** Add a new boolean column, `is_production`, to the `prompts` and `models` tables in Supabase. Ensure only one prompt and one model can be marked as production at any given time using database constraints or application logic.
     -   **UI:** In the frontend, add a button or toggle next to each prompt and model in their respective lists. This control will allow an admin user to set a specific prompt/model combination as the "production" version. This action should trigger an API call to update the `is_production` flags in the database.
 
-### Phase 2: Advanced Evaluation & Updates
-
-1.  **Automated Evaluation Framework:** Implement a system to test prompt/model changes against a set of predefined test cases.
-    -   **Database Schema:**
-        -   Create a `test_cases` table: `id`, `name`, `user_prompt`, `expected_json`.
-        -   Create a `evaluation_results` table: `id`, `test_case_id`, `prompt_id`, `model_id`, `generated_json`, `score`, `differences`, `created_at`.
-    -   **Evaluation Workflow:**
-        1.  A user initiates an evaluation run from the UI.
-        2.  The system iterates through all entries in `test_cases`.
-        3.  For each case, it generates a `metx.json` using the prompt/model being tested.
-        4.  It then makes a second LLM call to a "judge" model (e.g., Claude 4 Sonnet). The judge prompt will ask it to compare the `generated_json` against the `expected_json` and provide a similarity score (e.g., 1-10) and a textual description of any discrepancies.
-        5.  The results are stored in the `evaluation_results` table.
-    -   **UI:** Create a new section in the application to manage test cases and view a dashboard of evaluation results, comparing different prompts/models side-by-side.
-
-2.  **Granular Update Endpoint:**
-    `POST /api/v1/dashboard/update`
-    -   **Description:** Modifies an existing dashboard JSON.
-    -   **Request Body:**
-        ```json
-        {
-          "modification_prompt": "add a layer for 2-meter temperature",
-          "current_dashboard": { ... } // The full metx.json of the current dashboard
-        }
-        ```
-    -   **Implementation:** This endpoint will require a more sophisticated prompt that instructs the LLM to act as an editor rather than a generator, taking the existing JSON and the modification instruction as input and outputting a new, complete `metx.json`.
 
 ## 5. Location Extraction Technical Details
 
@@ -153,27 +128,11 @@ If no clear location is mentioned, return location_found: false.
 If location is ambiguous (e.g., "Paris"), choose the most prominent/likely option and note in reasoning.
 ```
 
-### 5.2. Cost Optimization Strategy
-
-**Model Selection:**
-- **Location Extraction:** GPT-4o-mini (faster, cheaper, sufficient for geographic tasks)
-- **Layer Generation:** GPT-4o or higher (complex JSON generation requires more capability)
-
-**Caching Implementation:**
-```typescript
-const commonLocations = {
-  "europe": { center_lat: 54.5260, center_lng: 15.2551, zoom: 4 },
-  "switzerland": { center_lat: 46.8182, center_lng: 8.2275, zoom: 7 },
-  "france": { center_lat: 46.6034, center_lng: 1.8883, zoom: 5 },
-  "germany": { center_lat: 51.1657, center_lng: 10.4515, zoom: 6 }
-};
-```
-
-### 5.3. Error Handling & Fallbacks
+### 5.2. Error Handling & Fallbacks
 
 1. **Parallel Execution Failures:**
    - If location extraction fails but layer generation succeeds → Use default viewport
-   - If layer generation fails but location extraction succeeds → Return error with location context
+   - If layer generation fails but location extraction succeeds → Rerun layer generation.
    - If both fail → Return comprehensive error message
 
 2. **Default Viewport Configuration:**

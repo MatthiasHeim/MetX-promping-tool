@@ -269,6 +269,13 @@ export function validateLayer(
     }
   }
   
+  if (layer.kind === 'SymbolLayerDescription') {
+    // Check for layer_type in custom_options - should be at layer level
+    if (layer.custom_options?.layer_type && !layer.layer_type) {
+      errors.push(`SymbolLayerDescription has layer_type in custom_options but should be at layer level.`);
+    }
+  }
+  
   return {
     isValid: errors.length === 0,
     errors,
@@ -486,6 +493,16 @@ function fixLayerParameters(dashboard: any): string[] {
           if (layer.parameter_unit === 'lightnings:') {
             layer.parameter_unit = 'lightnings'
             fixes.push(`Fixed LightningLayerDescription parameter_unit: lightnings: → lightnings in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          }
+        }
+        
+        // Fix SymbolLayerDescription issues
+        if (layer.kind === 'SymbolLayerDescription') {
+          // Fix layer_type in custom_options - should be at layer level
+          if (layer.custom_options?.layer_type && !layer.layer_type) {
+            layer.layer_type = layer.custom_options.layer_type
+            delete layer.custom_options.layer_type
+            fixes.push(`Fixed SymbolLayerDescription layer_type: moved from custom_options to layer level in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
           }
         }
         
@@ -729,6 +746,11 @@ function fixMissingTimestamps(dashboard: any): string[] {
           if (layer.step === undefined) {
             layer.step = 25;
             fixes.push(`Added missing step field to Symbol layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          // Don't add default layer_type if it's already in custom_options (will be moved by fixLayerParameters)
+          if (layer.layer_type === undefined && !layer.custom_options?.layer_type) {
+            layer.layer_type = "WeatherSymbol";
+            fixes.push(`Added missing layer_type field to Symbol layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
           }
         }
         
