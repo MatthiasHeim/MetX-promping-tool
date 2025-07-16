@@ -8,7 +8,7 @@
 
 import { validateAndFixDashboard } from './dashboardValidator'
 import type { ValidationResult } from './dashboardValidator'
-import { constructCompleteJson } from './jsonConstruction'
+import { constructCompleteJson } from './jsonConstruction';
 
 export interface DashboardProcessingResult {
   /** The processed and validated dashboard JSON */
@@ -129,7 +129,7 @@ export function processDashboardForDownload(dashboardJson: any): DashboardProces
 export function constructAndProcessCompleteJson(
   layersContent: any,
   prompt: any,
-  userInput: string,
+  _userInput: string,
   context: string = 'construction'
 ): {
   completeJson: any
@@ -140,7 +140,7 @@ export function constructAndProcessCompleteJson(
     // Use the imported construction utility
     
     // Construct complete JSON with prefix and suffix
-    const completeJsonString = constructCompleteJson(layersContent, prompt, userInput)
+    const completeJsonString = constructCompleteJson(layersContent, prompt)
     const parsedJson = JSON.parse(completeJsonString)
     
     // Process and validate the dashboard

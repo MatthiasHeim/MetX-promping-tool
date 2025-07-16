@@ -1488,7 +1488,6 @@ function App() {
                     {generationResults.length > 0 && (
                       <div className="mt-8">
                         <EvaluationComparisonPanel 
-                          results={generationResults}
                           className="border-t border-gray-200 pt-6"
                         />
                       </div>

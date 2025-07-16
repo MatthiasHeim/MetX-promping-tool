@@ -17,7 +17,7 @@ interface EvaluationComparisonPanelProps {
   results?: GenerationResult[]
   className?: string
   selectedRunId?: string
-  onEvaluationComplete?: () => void
+  onEvaluationComplete?: (runId?: string) => void
 }
 
 interface BatchEvaluationState {
@@ -74,8 +74,8 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
   }
 
   // Construct complete dashboard JSON with prefix/suffix (for evaluation results we don't have the prompt details)
-  const constructCompleteDashboard = (layers: any[], userPrompt: string) => {
-    const locationCoords = getLocationCoordinates(userPrompt)
+  const constructCompleteDashboard = (layers: any[]) => {
+    const locationCoords = getLocationCoordinates()
     
     // Use standard MetX dashboard template since we don't have access to custom prefix/suffix
     const dashboardTemplate = {
@@ -299,8 +299,7 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
               onClick={() => {
                 const layers = result.evaluation_test_cases?.expected_json || []
                 const dashboard = constructCompleteDashboard(
-                  Array.isArray(layers) ? layers : [layers], 
-                  result.evaluation_test_cases?.user_prompt || ''
+                  Array.isArray(layers) ? layers : [layers]
                 )
                 downloadJson(dashboard, `test-case-${index + 1}-expected-dashboard.json`)
               }}
@@ -326,8 +325,7 @@ function TestCaseResult({ result, index, getScoreColor }: TestCaseResultProps) {
                 if (result.generated_json) {
                   const layers = result.generated_json
                   const dashboard = constructCompleteDashboard(
-                    Array.isArray(layers) ? layers : [layers], 
-                    result.evaluation_test_cases?.user_prompt || ''
+                    Array.isArray(layers) ? layers : [layers]
                   )
                   downloadJson(dashboard, `test-case-${index + 1}-generated-dashboard.json`)
                 }
@@ -531,7 +529,7 @@ export function EvaluationComparisonPanel({ className = '', selectedRunId, onEva
               clearInterval(pollInterval)
               setEvaluationState(prev => ({ ...prev, isRunning: false }))
               if (summary.status === 'completed' && onEvaluationComplete) {
-                onEvaluationComplete()
+                onEvaluationComplete(batchRun.id)
               }
             }
           }

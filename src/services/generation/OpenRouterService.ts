@@ -69,7 +69,8 @@ export class OpenRouterService {
   static async generateCompletion(
     prompt: string,
     model: Model,
-    imageUrl?: string
+    imageUrl?: string,
+    responseFormat?: 'json' | 'text'
   ): Promise<OpenRouterGenerationResult> {
     // Validation
     if (!prompt) {
@@ -118,9 +119,9 @@ export class OpenRouterService {
         temperature: 0.7
       }
 
-      // Only add response_format for text-only requests
+      // Only add response_format for text-only requests and when JSON format is requested
       // Many vision models don't support structured JSON output
-      if (!imageUrl) {
+      if (!imageUrl && (responseFormat === 'json' || responseFormat === undefined)) {
         completionParams.response_format = { type: 'json_object' }
       }
 

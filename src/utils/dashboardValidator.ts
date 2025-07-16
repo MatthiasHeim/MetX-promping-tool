@@ -177,6 +177,11 @@ export function validateLayer(
     return { isValid: false, errors, warnings };
   }
   
+  // Check for common layer type mistakes
+  if (layer.kind === 'IsolineLayerDescription') {
+    errors.push('Incorrect layer type: "IsolineLayerDescription" should be "IsoLinesLayerDescription"');
+  }
+  
   // Get required fields for this layer type
   const requiredFields = LAYER_TYPE_REQUIREMENTS[layer.kind];
   if (!requiredFields) {
@@ -235,6 +240,33 @@ export function validateLayer(
   
   if (layer.time_updated && !isValidISOTimestamp(layer.time_updated)) {
     errors.push(`Invalid time_updated timestamp: ${layer.time_updated}`);
+  }
+  
+  // Validate layer-specific field structures
+  if (layer.kind === 'IsoLinesLayerDescription' && layer.custom_options) {
+    // Check for fields that should be at layer level, not in custom_options
+    const invalidCustomOptions = [
+      'range', 'text_size', 'line_color', 'line_width', 
+      'text_color', 'median_filter', 'gaussian_filter'
+    ];
+    const foundInvalid = invalidCustomOptions.filter(field => 
+      layer.custom_options[field] !== undefined
+    );
+    if (foundInvalid.length > 0) {
+      errors.push(`IsoLinesLayerDescription has invalid custom_options fields: ${foundInvalid.join(', ')}. These should be layer-level properties.`);
+    }
+  }
+  
+  if (layer.kind === 'LightningLayerDescription') {
+    // Check for text_color in custom_options - should be at layer level
+    if (layer.custom_options?.text_color && !layer.text_color) {
+      errors.push(`LightningLayerDescription has text_color in custom_options but should be at layer level.`);
+    }
+    
+    // Check for invalid parameter_unit with trailing colon
+    if (layer.parameter_unit === 'lightnings_60:' || layer.parameter_unit === 'lightnings:') {
+      errors.push(`LightningLayerDescription has invalid parameter_unit with trailing colon: ${layer.parameter_unit}`);
+    }
   }
   
   return {
@@ -390,6 +422,73 @@ function fixLayerParameters(dashboard: any): string[] {
     tab.maps?.forEach((map: any, mapIndex: number) => {
       map.layers?.forEach((layer: any, layerIndex: number) => {
         
+        // Fix incorrect layer type names
+        if (layer.kind === 'IsolineLayerDescription') {
+          layer.kind = 'IsoLinesLayerDescription'
+          fixes.push(`Fixed layer kind: IsolineLayerDescription → IsoLinesLayerDescription in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+        }
+        
+        // Fix IsoLinesLayerDescription custom_options structure
+        if (layer.kind === 'IsoLinesLayerDescription') {
+          // Check if custom_options has the wrong structure (like range, text_size, etc.)
+          if (layer.custom_options && (
+            layer.custom_options.range || 
+            layer.custom_options.text_size || 
+            layer.custom_options.line_color || 
+            layer.custom_options.line_width ||
+            layer.custom_options.text_color ||
+            layer.custom_options.median_filter ||
+            layer.custom_options.gaussian_filter
+          )) {
+            // Move these fields to the correct layer properties
+            if (layer.custom_options.range && !layer.value_range) {
+              layer.value_range = layer.custom_options.range
+            }
+            if (layer.custom_options.text_size && !layer.text_size) {
+              layer.text_size = layer.custom_options.text_size
+            }
+            if (layer.custom_options.line_color && !layer.line_color) {
+              layer.line_color = layer.custom_options.line_color
+            }
+            if (layer.custom_options.line_width && !layer.line_width) {
+              layer.line_width = layer.custom_options.line_width
+            }
+            if (layer.custom_options.text_color && !layer.text_color) {
+              layer.text_color = layer.custom_options.text_color
+            }
+            if (layer.custom_options.median_filter && !layer.filter_median) {
+              layer.filter_median = layer.custom_options.median_filter
+            }
+            if (layer.custom_options.gaussian_filter && !layer.filter_gauss) {
+              layer.filter_gauss = layer.custom_options.gaussian_filter
+            }
+            
+            // Reset custom_options to empty object for IsoLines layers
+            layer.custom_options = {}
+            fixes.push(`Fixed IsoLinesLayerDescription custom_options structure in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          }
+        }
+        
+        // Fix LightningLayerDescription issues
+        if (layer.kind === 'LightningLayerDescription') {
+          // Fix text_color in custom_options - should be at layer level
+          if (layer.custom_options?.text_color && !layer.text_color) {
+            layer.text_color = layer.custom_options.text_color
+            delete layer.custom_options.text_color
+            fixes.push(`Fixed LightningLayerDescription text_color: moved from custom_options to layer level in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          }
+          
+          // Fix invalid parameter_unit with trailing colon
+          if (layer.parameter_unit === 'lightnings_60:') {
+            layer.parameter_unit = 'lightnings_60'
+            fixes.push(`Fixed LightningLayerDescription parameter_unit: lightnings_60: → lightnings_60 in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          }
+          if (layer.parameter_unit === 'lightnings:') {
+            layer.parameter_unit = 'lightnings'
+            fixes.push(`Fixed LightningLayerDescription parameter_unit: lightnings: → lightnings in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          }
+        }
+        
         // Fix WindAnimationLayerDescription issues
         if (layer.kind === 'WindAnimationLayerDescription') {
           // Fix incorrect parameter_unit
@@ -533,7 +632,7 @@ function fixMissingTimestamps(dashboard: any): string[] {
         fixes.push(`Fixed map_projection: mercator object → null in map ${mapIndex}, tab ${tabIndex}`);
       }
       
-      // Fix layer timestamps
+      // Fix layer timestamps and missing required fields
       map.layers?.forEach((layer: any, layerIndex: number) => {
         if (!layer.time_created) {
           layer.time_created = now;
@@ -542,6 +641,137 @@ function fixMissingTimestamps(dashboard: any): string[] {
         if (!layer.time_updated) {
           layer.time_updated = now;
           fixes.push(`Added missing time_updated to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+        }
+        
+        // Add missing universal required fields
+        if (layer.calibrated === undefined) {
+          layer.calibrated = null;
+          fixes.push(`Added missing calibrated field to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+        }
+        if (layer.experimental === undefined) {
+          layer.experimental = false;
+          fixes.push(`Added missing experimental field to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+        }
+        if (layer.vertical_interpolation === undefined) {
+          layer.vertical_interpolation = layer.kind === 'BackgroundMapDescription' ? 'none' : null;
+          fixes.push(`Added missing vertical_interpolation field to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+        }
+        if (!layer.custom_options) {
+          layer.custom_options = layer.kind === 'BackgroundMapDescription' 
+            ? {
+                line_color: null,
+                show_state_border: null,
+                map_label_language: "en"
+              }
+            : layer.kind === 'WmsLayerDescription' 
+            ? {
+                init_date: null
+              }
+            : layer.kind === 'SymbolLayerDescription'
+            ? {
+                show_only_significant_weather: true,
+                icon_size: 0.4
+              }
+            : {};
+          fixes.push(`Added missing custom_options field to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+        }
+        
+        // Add weather model fields for layers that need them
+        const needsWeatherFields = [
+          'WmsLayerDescription', 'LightningLayerDescription', 'SymbolLayerDescription',
+          'BarbsLayerDescription', 'GridLayerDescription', 'IsoLinesLayerDescription',
+          'PressureSystemLayerDescription', 'StationLayerDescription', 'WeatherFrontsLayerDescription',
+          'WindAnimationLayerDescription', 'GenericPoiLayerDescription', 'AviationLayerDescription'
+        ];
+        
+        if (needsWeatherFields.includes(layer.kind)) {
+          if (layer.ens_select === undefined) {
+            layer.ens_select = null;
+            fixes.push(`Added missing ens_select field to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.show_init_time === undefined) {
+            layer.show_init_time = false;
+            fixes.push(`Added missing show_init_time field to layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        // Add layer-specific required fields
+        if (layer.kind === 'WeatherFrontsLayerDescription') {
+          if (layer.parameter_unit === undefined) {
+            layer.parameter_unit = "";
+            fixes.push(`Added missing parameter_unit field to WeatherFronts layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        if (layer.kind === 'PressureSystemLayerDescription') {
+          if (layer.value_range === undefined) {
+            layer.value_range = "950,1050,4";
+            fixes.push(`Added missing value_range field to PressureSystem layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.values === undefined) {
+            layer.values = null;
+            fixes.push(`Added missing values field to PressureSystem layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        if (layer.kind === 'IsoLinesLayerDescription') {
+          if (layer.value_range === undefined) {
+            layer.value_range = "0,1000,10";
+            fixes.push(`Added missing value_range field to IsoLines layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.values === undefined) {
+            layer.values = null;
+            fixes.push(`Added missing values field to IsoLines layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        if (layer.kind === 'SymbolLayerDescription') {
+          if (layer.step === undefined) {
+            layer.step = 25;
+            fixes.push(`Added missing step field to Symbol layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        if (layer.kind === 'BarbsLayerDescription') {
+          if (layer.step === undefined) {
+            layer.step = 41;
+            fixes.push(`Added missing step field to Barbs layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.parameter_unit_paired === undefined) {
+            layer.parameter_unit_paired = "wind_dir_10m:d";
+            fixes.push(`Added missing parameter_unit_paired field to Barbs layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.element_color === undefined) {
+            layer.element_color = "#000000";
+            fixes.push(`Added missing element_color field to Barbs layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        if (layer.kind === 'GridLayerDescription') {
+          if (layer.step === undefined) {
+            layer.step = 42;
+            fixes.push(`Added missing step field to Grid layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.text_color === undefined) {
+            layer.text_color = "#000000";
+            fixes.push(`Added missing text_color field to Grid layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.text_size === undefined) {
+            layer.text_size = 16;
+            fixes.push(`Added missing text_size field to Grid layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+        }
+        
+        if (layer.kind === 'LightningLayerDescription') {
+          // Don't add default text_color if it's already in custom_options (will be moved by fixLayerParameters)
+          if (layer.text_color === undefined && !layer.custom_options?.text_color) {
+            layer.text_color = "#FFFF00";
+            fixes.push(`Added missing text_color field to Lightning layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
+          if (layer.text_size === undefined) {
+            layer.text_size = 16;
+            fixes.push(`Added missing text_size field to Lightning layer ${layerIndex} in map ${mapIndex}, tab ${tabIndex}`);
+          }
         }
       });
     });

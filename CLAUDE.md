@@ -75,8 +75,7 @@ npm test -- --coverage src/services/auth/AuthService.test.ts
 ### Service Layer Architecture
 - **AuthService** - Authentication and user management
 - **GenerationService** - Core generation pipeline with cost calculation and error handling
-- **OpenAIService** - Direct OpenAI API integration
-- **OpenRouterService** - OpenRouter API integration for additional models
+- **OpenRouterService** - OpenRouter API integration for all models
 - **PromptService** - CRUD operations for prompts with versioning
 - **EvaluationService** - Automated quality assessment
 - **ModelService** - Model configuration management

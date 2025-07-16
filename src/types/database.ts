@@ -346,6 +346,7 @@ export interface Database {
           judge_model_id: string | null
           generated_json: any | null
           raw_llm_response: string | null
+          judge_prompt_sent: string | null
           created_at: string
         }
         Insert: {
@@ -358,6 +359,7 @@ export interface Database {
           judge_model_id?: string | null
           generated_json?: any | null
           raw_llm_response?: string | null
+          judge_prompt_sent?: string | null
           created_at?: string
         }
         Update: {
@@ -367,6 +369,7 @@ export interface Database {
           generated_json?: any | null
           raw_llm_response?: string | null
           judge_model_id?: string | null
+          judge_prompt_sent?: string | null
         }
       }
     }
@@ -407,7 +410,9 @@ export type EvaluationTestCase = Database['public']['Tables']['evaluation_test_c
 export type EvaluationTestCaseInsert = Database['public']['Tables']['evaluation_test_cases']['Insert']
 export type EvaluationTestCaseUpdate = Database['public']['Tables']['evaluation_test_cases']['Update']
 
-export type BatchEvaluationRun = Database['public']['Tables']['batch_evaluation_runs']['Row']
+export type BatchEvaluationRun = Database['public']['Tables']['batch_evaluation_runs']['Row'] & {
+  successful_evaluations?: number // Added for UI display
+}
 export type BatchEvaluationRunInsert = Database['public']['Tables']['batch_evaluation_runs']['Insert']
 export type BatchEvaluationRunUpdate = Database['public']['Tables']['batch_evaluation_runs']['Update']
 

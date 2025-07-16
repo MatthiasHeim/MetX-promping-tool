@@ -1,5 +1,4 @@
 // GenerationService - Core generation pipeline for MetX prompting tool
-import { OpenAIService } from './OpenAIService'
 import { OpenRouterService } from './OpenRouterService'
 import { JsonValidator } from '../../utils/JsonValidator'
 import type { 
@@ -238,14 +237,8 @@ export class GenerationService {
     };
   }> {
     try {
-      // Route to appropriate service based on model provider
-      let result;
-      if (model.provider === 'openrouter') {
-        result = await OpenRouterService.generateCompletion(prompt, model, imageUrl)
-      } else {
-        // Default to OpenAI service for 'openai' provider and others
-        result = await OpenAIService.generateCompletion(prompt, model, imageUrl)
-      }
+      // Use OpenRouter service for all models
+      const result = await OpenRouterService.generateCompletion(prompt, model, imageUrl)
 
       // If generation was successful and we have JSON prefix/suffix, validate and fix JSON
       if (result.success && result.content && (jsonPrefix || jsonSuffix)) {
@@ -287,22 +280,9 @@ export class GenerationService {
     total_latency_ms: number;
   }> {
     try {
-      // Separate models by provider
-      const openaiModels = models.filter(model => model.provider !== 'openrouter')
-      const openrouterModels = models.filter(model => model.provider === 'openrouter')
-      
-      // Execute in parallel across providers
-      const promises: Promise<any>[] = []
-      
-      if (openaiModels.length > 0) {
-        promises.push(OpenAIService.executeParallelGeneration(prompt, openaiModels, imageUrl, onProgress))
-      }
-      
-      if (openrouterModels.length > 0) {
-        promises.push(OpenRouterService.executeParallelGeneration(prompt, openrouterModels, imageUrl, onProgress))
-      }
-      
-      const results = await Promise.all(promises)
+      // Use OpenRouter service for all models
+      const result = await OpenRouterService.executeParallelGeneration(prompt, models, imageUrl, onProgress)
+      const results = [result]
       
       // Combine results from all providers
       const combinedResults = results.reduce((acc, result) => {

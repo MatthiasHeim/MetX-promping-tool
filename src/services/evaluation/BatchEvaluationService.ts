@@ -2,10 +2,10 @@ import { supabase } from '../../lib/supabase'
 import { EvaluationTestCaseService } from './EvaluationTestCaseService'
 import { PromptService } from '../prompts/PromptService'
 import { ModelService } from '../models/ModelService'
-import { OpenAIService } from '../generation/OpenAIService'
 import { OpenRouterService } from '../generation/OpenRouterService'
 import { GenerationService } from '../generation/GenerationService'
 import { parseLLMJsonResponse } from '../../utils/jsonParsing'
+import { validateAndFixDashboard } from '../../utils/dashboardValidator'
 import type { 
   BatchEvaluationRun, 
   BatchEvaluationRunUpdate,
@@ -141,7 +141,8 @@ export class BatchEvaluationService {
             comparison_details: comparisonResult.details,
             judge_model_id: judgeModelId || 'google/gemini-2.5-flash', // Use configured or default judge model
             generated_json: generationResult.generated_json,
-            raw_llm_response: generationResult.raw_content || null // Store raw LLM response for debugging
+            raw_llm_response: comparisonResult.rawResponse, // Store raw judge response for debugging
+            judge_prompt_sent: comparisonResult.processedPrompt // Store the actual prompt sent to the judge
           })
 
           results.push(batchResult)
@@ -171,7 +172,8 @@ export class BatchEvaluationService {
             comparison_details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
             judge_model_id: null,
             generated_json: null,
-            raw_llm_response: null
+            raw_llm_response: null,
+            judge_prompt_sent: null
           })
           completedCount++
         }
@@ -205,13 +207,8 @@ export class BatchEvaluationService {
       // Process the prompt template with the test case user prompt
       const processedPrompt = GenerationService.processPromptTemplate(prompt.template_text, testCase.user_prompt)
       
-      // Generate using the appropriate service based on model provider
-      let response;
-      if (model.provider === 'openrouter') {
-        response = await OpenRouterService.generateCompletion(processedPrompt, model)
-      } else {
-        response = await OpenAIService.generateCompletion(processedPrompt, model)
-      }
+      // Generate using OpenRouter service for all models
+      const response = await OpenRouterService.generateCompletion(processedPrompt, model, undefined, 'json')
 
       if (!response.success || !response.content) {
         throw new Error(`Generation failed: ${response.error?.message || 'No content generated'}`)
@@ -254,7 +251,7 @@ export class BatchEvaluationService {
     userPrompt: string,
     judgePromptId?: string,
     judgeModelId?: string
-  ): Promise<{ score: number; details: string }> {
+  ): Promise<{ score: number; details: string; rawResponse: string | null; processedPrompt?: string }> {
     try {
       let judgePromptText: string
       let judgeModel: Model
@@ -320,20 +317,38 @@ Example response:
         }
       }
 
-      // Process the judge prompt template with actual values
+      // Apply validation to both JSONs to normalize them before comparison
+      let normalizedExpectedJson = expectedJson
+      let normalizedGeneratedJson = generatedJson
+      
+      // Validate and fix expected JSON to ensure fair comparison
+      if (expectedJson && typeof expectedJson === 'object') {
+        try {
+          const expectedResult = validateAndFixDashboard(expectedJson)
+          normalizedExpectedJson = expectedResult.dashboard
+        } catch (error) {
+          console.warn('Could not validate expected JSON:', error)
+        }
+      }
+      
+      // Validate and fix generated JSON
+      if (generatedJson && typeof generatedJson === 'object') {
+        try {
+          const generatedResult = validateAndFixDashboard(generatedJson)
+          normalizedGeneratedJson = generatedResult.dashboard
+        } catch (error) {
+          console.warn('Could not validate generated JSON:', error)
+        }
+      }
+
+      // Process the judge prompt template with normalized JSON values
       const processedPrompt = judgePromptText
         .replace(/\{\{user_input\}\}/g, userPrompt)
-        .replace(/\{\{expected_json\}\}/g, JSON.stringify(expectedJson, null, 2))
-        .replace(/\{\{generated_json\}\}/g, JSON.stringify(generatedJson, null, 2))
+        .replace(/\{\{expected_json\}\}/g, JSON.stringify(normalizedExpectedJson, null, 2))
+        .replace(/\{\{generated_json\}\}/g, JSON.stringify(normalizedGeneratedJson, null, 2))
 
-      // Route to appropriate service based on model provider (same logic as GenerationService)
-      let response;
-      if (judgeModel.provider === 'openrouter') {
-        response = await OpenRouterService.generateCompletion(processedPrompt, judgeModel)
-      } else {
-        // Default to OpenAI service for 'openai' provider and others
-        response = await OpenAIService.generateCompletion(processedPrompt, judgeModel)
-      }
+      // Use OpenRouter service for all judge models - use text format for judge models
+      const response = await OpenRouterService.generateCompletion(processedPrompt, judgeModel, undefined, 'text')
 
       // Parse the response - handle both XML and JSON formats
       const responseText = response.content || ''
@@ -440,13 +455,20 @@ Example response:
       }
 
       console.log('Final result - Score:', score, 'Details length:', details.length, 'Parse success:', parseSuccess)
-      return { score: score || 0, details } // Return 0 for failed parsing to distinguish from valid scores
+      return { 
+        score: score || 0, 
+        details,
+        rawResponse: responseText, // Include raw judge response for storage
+        processedPrompt: processedPrompt // Include the actual prompt sent to the judge
+      } // Return 0 for failed parsing to distinguish from valid scores
 
     } catch (error) {
       console.error('Error in judge model comparison:', error)
       return {
         score: 0,
-        details: `Judge model error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        details: `Judge model error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        rawResponse: null,
+        processedPrompt: undefined
       }
     }
   }
@@ -587,7 +609,9 @@ Example response:
         .select(`
           *,
           prompts!batch_evaluation_runs_prompt_id_fkey(name, version),
-          models!batch_evaluation_runs_model_id_fkey(name)
+          models!batch_evaluation_runs_model_id_fkey(name),
+          judge_prompts:prompts!batch_evaluation_runs_judge_prompt_id_fkey(name, version),
+          judge_models:models!batch_evaluation_runs_judge_model_id_fkey(name)
         `)
         .order('started_at', { ascending: false })
 
@@ -596,7 +620,28 @@ Example response:
         throw new Error(`Failed to fetch batch runs: ${error.message}`)
       }
 
-      return data || []
+      // Fetch success counts for each run
+      const runsWithSuccessCounts = await Promise.all(
+        (data || []).map(async (run) => {
+          const { data: successData, error: successError } = await supabase
+            .from('batch_evaluation_results')
+            .select('comparison_score')
+            .eq('batch_run_id', run.id)
+
+          if (successError) {
+            console.error('Error fetching success counts:', successError)
+            return { ...run, successful_evaluations: 0 }
+          }
+
+          const successfulEvaluations = (successData || []).filter(
+            result => result.comparison_score !== null && result.comparison_score > 0
+          ).length
+
+          return { ...run, successful_evaluations: successfulEvaluations }
+        })
+      )
+
+      return runsWithSuccessCounts
     } catch (error) {
       console.error('Error in getAllBatchRuns:', error)
       throw error
@@ -614,6 +659,40 @@ Example response:
       })
     } catch (error) {
       console.error('Error in cancelBatchRun:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Delete a batch evaluation run and all its dependencies
+   */
+  static async deleteBatchRun(runId: string): Promise<void> {
+    try {
+      // Delete all batch evaluation results for this run first (due to foreign key constraints)
+      const { error: resultsError } = await supabase
+        .from('batch_evaluation_results')
+        .delete()
+        .eq('batch_run_id', runId)
+
+      if (resultsError) {
+        console.error('Error deleting batch evaluation results:', resultsError)
+        throw new Error(`Failed to delete batch evaluation results: ${resultsError.message}`)
+      }
+
+      // Delete the batch run itself
+      const { error: runError } = await supabase
+        .from('batch_evaluation_runs')
+        .delete()
+        .eq('id', runId)
+
+      if (runError) {
+        console.error('Error deleting batch evaluation run:', runError)
+        throw new Error(`Failed to delete batch evaluation run: ${runError.message}`)
+      }
+
+      console.log(`Successfully deleted batch evaluation run ${runId} and all its dependencies`)
+    } catch (error) {
+      console.error('Error in deleteBatchRun:', error)
       throw error
     }
   }

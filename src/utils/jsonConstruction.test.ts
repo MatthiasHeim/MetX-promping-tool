@@ -1,26 +1,5 @@
 import { describe, it, expect } from 'vitest'
-
-// Helper function to construct complete JSON with prefix and suffix
-const constructCompleteJson = (rawOutput: any, prompt: { json_prefix?: string | null, json_suffix?: string | null }): string => {
-  const prefix = prompt.json_prefix || ''
-  const suffix = prompt.json_suffix || ''
-  
-  // Format the raw output based on what the prompt expects
-  let formattedOutput: string
-  if (Array.isArray(rawOutput)) {
-    // For arrays, format each element with proper indentation and remove outer brackets
-    formattedOutput = rawOutput.map(item => 
-      JSON.stringify(item, null, 2)
-        .split('\n')
-        .map(line => line ? '            ' + line : line) // Add indentation to match prefix structure
-        .join('\n')
-    ).join(',\n')
-  } else {
-    formattedOutput = JSON.stringify(rawOutput, null, 2)
-  }
-  
-  return prefix + formattedOutput + suffix
-}
+import { constructCompleteJson } from './jsonConstruction'
 
 describe('JSON Construction', () => {
   it('should construct complete JSON with prefix and suffix for arrays', () => {

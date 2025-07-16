@@ -1,0 +1,195 @@
+EVALUATION TASK: Compare AI-generated weather dashboard configurations.
+IMPORTANT: You are an EVALUATOR, not a JSON generator. Do NOT create layer JSON.
+
+USER REQUEST: "Set up a dashboard showing 1 map: 850 hPa temperature, mean sea level pressure, and total cloud cover over Central Europe now."
+
+EXPECTED JSON (Reference):
+[
+  {
+    "id": 551303,
+    "kind": "BackgroundMapDescription",
+    "show": true,
+    "index": 1,
+    "style": "topo",
+    "opacity": 0.7,
+    "calibrated": false,
+    "id_profile": 12398,
+    "experimental": false,
+    "time_created": "2025-07-09T13:19:55.389636Z",
+    "time_updated": "2025-07-09T13:42:23.967687Z",
+    "custom_options": {
+      "line_color": null,
+      "show_state_border": null,
+      "map_label_language": "en"
+    },
+    "id_cartographicmap": 115388,
+    "vertical_interpolation": null
+  },
+  {
+    "id": 551304,
+    "kind": "BackgroundMapDescription",
+    "show": true,
+    "index": 2,
+    "style": "3958f66e-04a7-48e9-a088-a3b3c617c617",
+    "opacity": 1,
+    "calibrated": false,
+    "id_profile": 12398,
+    "experimental": false,
+    "time_created": "2025-07-09T13:19:55.399872Z",
+    "time_updated": "2025-07-09T13:42:23.967687Z",
+    "custom_options": {
+      "line_color": "#030303",
+      "show_state_border": false,
+      "map_label_language": "en"
+    },
+    "id_cartographicmap": 115388,
+    "vertical_interpolation": "none"
+  },
+  {
+    "id": 551305,
+    "kind": "WmsLayerDescription",
+    "show": true,
+    "index": 3,
+    "model": "mm-euro1k",
+    "opacity": 0.7,
+    "color_map": "",
+    "calibrated": false,
+    "ens_select": null,
+    "id_profile": 12398,
+    "experimental": false,
+    "time_created": "2025-07-09T13:19:55.411717Z",
+    "time_updated": "2025-07-09T13:42:23.967687Z",
+    "custom_options": {
+      "init_date": null
+    },
+    "legend_visible": true,
+    "parameter_unit": "t_850hPa:C",
+    "show_init_time": false,
+    "id_cartographicmap": 115388,
+    "vertical_interpolation": null
+  },
+  {
+    "id": 551306,
+    "kind": "WmsLayerDescription",
+    "show": true,
+    "index": 4,
+    "model": "mm-euro1k",
+    "opacity": 0.7,
+    "color_map": "",
+    "calibrated": false,
+    "ens_select": null,
+    "id_profile": 12398,
+    "experimental": false,
+    "time_created": "2025-07-09T13:19:55.425019Z",
+    "time_updated": "2025-07-09T13:42:23.967687Z",
+    "custom_options": {
+      "init_date": null
+    },
+    "legend_visible": true,
+    "parameter_unit": "total_cloud_cover:octas",
+    "show_init_time": false,
+    "id_cartographicmap": 115388,
+    "vertical_interpolation": null
+  },
+  {
+    "id": 551307,
+    "kind": "IsoLinesLayerDescription",
+    "show": true,
+    "index": 5,
+    "model": "mm-euro1k",
+    "values": null,
+    "opacity": 0.7,
+    "text_size": 16,
+    "calibrated": false,
+    "ens_select": null,
+    "id_profile": 12398,
+    "line_color": "#000000",
+    "line_width": 2,
+    "text_color": "#000000",
+    "value_range": null,
+    "experimental": false,
+    "filter_gauss": 3,
+    "time_created": "2025-07-09T13:19:55.438243Z",
+    "time_updated": "2025-07-09T13:42:23.967687Z",
+    "filter_median": 3,
+    "custom_options": {},
+    "parameter_unit": "msl_pressure:hPa",
+    "show_init_time": false,
+    "id_cartographicmap": 115388,
+    "vertical_interpolation": null
+  }
+]
+
+GENERATED JSON (To Evaluate):
+[
+  {
+    "kind": "BackgroundMapDescription",
+    "show": true,
+    "index": 0,
+    "style": "topographique",
+    "opacity": 1
+  },
+  {
+    "kind": "WmsLayerDescription",
+    "show": true,
+    "index": 1,
+    "model": "mix",
+    "opacity": 0.7,
+    "color_map": "t_europe",
+    "legend_visible": true,
+    "parameter_unit": "t_850hPa:C"
+  },
+  {
+    "kind": "IsolineLayerDescription",
+    "show": true,
+    "index": 2,
+    "model": "mix",
+    "opacity": 0.7,
+    "calibrated": false,
+    "experimental": false,
+    "custom_options": {
+      "range": "940,1060,4",
+      "text_size": 15,
+      "line_color": "#FF0000",
+      "line_width": 1,
+      "text_color": "#FF0000",
+      "median_filter": 5,
+      "gaussian_filter": 5
+    },
+    "legend_visible": false,
+    "parameter_unit": "msl_pressure:hPa",
+    "vertical_interpolation": null
+  },
+  {
+    "kind": "WmsLayerDescription",
+    "show": true,
+    "index": 3,
+    "model": "mix",
+    "opacity": 0.6,
+    "color_map": "cloud_cover",
+    "legend_visible": true,
+    "parameter_unit": "total_cloud_cover:octas"
+  }
+]
+
+Evaluate how well the generated JSON matches the expected JSON. Consider:
+1. **Weather Layers**: Correct weather parameters included?
+2. **Layer Configuration**: Proper layer settings and parameters?
+3. **Structure**: Valid JSON structure and completeness?
+4. **Additional Value**: Useful additional layers beyond minimum?
+
+Penalize missing layers much more than additional layers that are not part of the original JSON. As long as the map depicts what the user asked for, the score should be above 8.
+
+CRITICAL INSTRUCTIONS:
+- You are EVALUATING, not generating new JSON
+- Do NOT return layer configurations
+- Do NOT return JSON arrays or objects
+- ONLY return the XML format below
+
+REQUIRED RESPONSE FORMAT (copy exactly):
+<score>8</score>
+<details>Your evaluation explanation here</details>
+
+Example response:
+<score>7</score>
+<details>Generated JSON has correct weather parameters but missing opacity settings and has different color_map values than expected.</details>
