@@ -284,17 +284,70 @@ export function validateLayer(
 }
 
 /**
+ * Validates dashboard root structure
+ */
+export function validateDashboardStructure(dashboard: any): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Check required root fields
+  const requiredRootFields = ['id', 'title', 'tab_active', 'use_global_datetime', 'global_datetime', 'id_account', 'time_created', 'time_updated', 'tabs'];
+  const missingRootFields = requiredRootFields.filter(field => !(field in dashboard) || dashboard[field] === undefined);
+  if (missingRootFields.length > 0) {
+    errors.push(`Missing required root fields: ${missingRootFields.join(', ')}`);
+  }
+
+  // Validate global_datetime structure
+  if (dashboard.global_datetime) {
+    // global_datetime SHOULD have id_profile that matches dashboard.id
+    if (!('id_profile' in dashboard.global_datetime)) {
+      errors.push('global_datetime missing required id_profile field');
+    } else if (dashboard.global_datetime.id_profile !== dashboard.id) {
+      errors.push(`global_datetime.id_profile (${dashboard.global_datetime.id_profile}) should match dashboard.id (${dashboard.id})`);
+    }
+    
+    const requiredGlobalDatetimeFields = ['is_relative', 'is_series', 'is_auto_time_refresh_on', 'abs_start', 'abs_end', 'rel_rounding_on', 'rel_position', 'rel_rounding_direction', 'rel_shift_on', 'rel_start', 'rel_end', 'temporal_resolution', 'fps', 'id', 'time_created', 'time_updated'];
+    const missingGlobalFields = requiredGlobalDatetimeFields.filter(field => !(field in dashboard.global_datetime) || dashboard.global_datetime[field] === undefined);
+    if (missingGlobalFields.length > 0) {
+      errors.push(`Missing required global_datetime fields: ${missingGlobalFields.join(', ')}`);
+    }
+  }
+
+  // Validate tabs array exists
+  if (!dashboard.tabs || !Array.isArray(dashboard.tabs)) {
+    errors.push('Dashboard must have tabs array');
+  } else if (dashboard.tabs.length === 0) {
+    errors.push('Dashboard must have at least one tab');
+  }
+
+  // Validate tab_active references existing tab
+  if (dashboard.tab_active && dashboard.tabs?.length > 0) {
+    const tabIds = dashboard.tabs.map((tab: any) => tab.id);
+    if (!tabIds.includes(dashboard.tab_active)) {
+      errors.push(`tab_active (${dashboard.tab_active}) does not reference any existing tab ID`);
+    }
+  }
+
+  return { isValid: errors.length === 0, errors, warnings };
+}
+
+/**
  * Validates all layers in a dashboard
  */
 export function validateDashboardLayers(dashboard: any): ValidationResult {
   const allErrors: string[] = [];
   const allWarnings: string[] = [];
   
+  // First validate root structure
+  const structureValidation = validateDashboardStructure(dashboard);
+  allErrors.push(...structureValidation.errors);
+  allWarnings.push(...structureValidation.warnings);
+  
   if (!dashboard.tabs || !Array.isArray(dashboard.tabs)) {
     return {
       isValid: false,
-      errors: ['Dashboard must have tabs array'],
-      warnings: []
+      errors: allErrors,
+      warnings: allWarnings
     };
   }
   
@@ -383,16 +436,16 @@ function fixFieldConsistency(dashboard: any): string[] {
         
         // Fix BackgroundMapDescription custom_options
         if (layer.kind === 'BackgroundMapDescription' && layer.custom_options) {
-          // Standardize show_state_border to null (not false)
-          if (layer.custom_options.show_state_border === false) {
-            layer.custom_options.show_state_border = null
-            fixes.push(`Fixed show_state_border: false → null in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          // CRITICAL: MetX requires show_state_border to be false, not null
+          if (layer.custom_options.show_state_border === null || layer.custom_options.show_state_border === undefined) {
+            layer.custom_options.show_state_border = false;
+            fixes.push(`Fixed show_state_border: ${layer.custom_options.show_state_border === null ? 'null' : 'undefined'} → false in ${layer.kind} (Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex})`);
           }
           
-          // Ensure map_label_language is "en" (not null)
-          if (layer.custom_options.map_label_language === null) {
-            layer.custom_options.map_label_language = "en"
-            fixes.push(`Fixed map_label_language: null → "en" in Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex}`)
+          // Fix map_label_language consistency (should be null for most cases)
+          if (layer.custom_options.map_label_language === "en") {
+            layer.custom_options.map_label_language = null;
+            fixes.push(`Fixed map_label_language: "en" → null in ${layer.kind} (Tab ${tabIndex}, Map ${mapIndex}, Layer ${layerIndex})`);
           }
         }
         
@@ -571,6 +624,39 @@ function fixLayerParameters(dashboard: any): string[] {
 }
 
 /**
+ * Fix root structure issues that prevent MetX upload
+ */
+function fixRootStructure(dashboard: any): string[] {
+  const fixes: string[] = [];
+  
+  // Fix global_datetime structure - ensure id_profile matches dashboard.id
+  if (dashboard.global_datetime) {
+    if (!dashboard.global_datetime.id_profile) {
+      dashboard.global_datetime.id_profile = dashboard.id;
+      fixes.push('Added missing id_profile field to global_datetime');
+    } else if (dashboard.global_datetime.id_profile !== dashboard.id) {
+      dashboard.global_datetime.id_profile = dashboard.id;
+      fixes.push(`Fixed global_datetime.id_profile to match dashboard.id (${dashboard.id})`);
+    }
+  }
+  
+  // Fix tab datetime structure - ensure id_profile matches dashboard.id
+  dashboard.tabs?.forEach((tab: any, tabIndex: number) => {
+    if (tab.datetime) {
+      if (!tab.datetime.id_profile) {
+        tab.datetime.id_profile = dashboard.id;
+        fixes.push(`Added missing id_profile field to tab ${tabIndex} datetime`);
+      } else if (tab.datetime.id_profile !== dashboard.id) {
+        tab.datetime.id_profile = dashboard.id;
+        fixes.push(`Fixed tab ${tabIndex} datetime.id_profile to match dashboard.id (${dashboard.id})`);
+      }
+    }
+  });
+  
+  return fixes;
+}
+
+/**
  * Fix missing timestamp fields that are required by MetX
  */
 function fixMissingTimestamps(dashboard: any): string[] {
@@ -677,8 +763,8 @@ function fixMissingTimestamps(dashboard: any): string[] {
           layer.custom_options = layer.kind === 'BackgroundMapDescription' 
             ? {
                 line_color: null,
-                show_state_border: null,
-                map_label_language: "en"
+                show_state_border: false,  // CRITICAL: Must be false for MetX upload
+                map_label_language: null
               }
             : layer.kind === 'WmsLayerDescription' 
             ? {
@@ -917,6 +1003,9 @@ export function generateMissingIds(dashboard: any): any {
   });
   
   // Apply comprehensive fixes
+  const rootFixes = fixRootStructure(dashboard);
+  allFixes.push(...rootFixes);
+  
   const timestampFixes = fixMissingTimestamps(dashboard);
   allFixes.push(...timestampFixes);
   
